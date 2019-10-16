@@ -37,11 +37,25 @@ public:
 	///
 	int save(const std::string& filename) const;
 
-	const std::vector<struct QuestionGroupLayout>& getQuestionGroups() const;
+	const std::vector<struct SideLayout>& getSideLayouts() const;
 	const std::string& getTitle() const;
 
 private:
 	std::string title_;
+	std::vector<struct SideLayout> sideLayouts_;
+};
+
+struct SideLayout {
+
+	inline void addQuestionGroup(const struct QuestionGroupLayout& questionGroup) {
+		questionGroups_.push_back(questionGroup);
+	}
+
+	inline size_t getNumGroups() {
+		return questionGroups_.size();
+	}
+
+	size_t sideNumber_;
 	std::vector<struct QuestionGroupLayout> questionGroups_;
 };
 
@@ -58,6 +72,10 @@ struct QuestionGroupLayout {
 
 	inline void addQuestion(const struct QuestionLayout& question) {
 		questions_.push_back(question);
+	}
+
+	inline size_t getNumQuestions() {
+		return questions_.size();
 	}
 
 	std::string name_;

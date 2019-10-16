@@ -5,7 +5,6 @@
 #include <chrono>
 #include <ctime>
 #include <iomanip>
-#include <qdebug.h>
 
 #include "TextLogging.hxx"
 
@@ -34,8 +33,6 @@ TextLogging::TextLogging() {
 	isCriticalVerbosityEnabled_ = isCriticalVerbosityEnabledDefault_;
 	isFatalVerbosityEnabled_ = isFatalVerbosityEnabledDefault_;
 	isColorTextEnabled_ = isColorTextEnabledDefault_;
-
-	qDebug() << getLogFileName().c_str();
 }
 
 

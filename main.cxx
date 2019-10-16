@@ -1,4 +1,5 @@
 #include "ScantronReader.hxx"
+#include "DetectionParams.hxx"
 #include "TextLogging.hxx"
 #include "SheetLayout.hxx"
 #include <QtWidgets/QApplication>
@@ -8,36 +9,33 @@
 #include <qdebug.h>
 #include <sstream>
 
-using namespace cv;
-
 int main(int argc, char *argv[])
 {
 
 	//TextLogging::setIsDebugVerbosityEnabledDefault(true);
+	
+	std::ostringstream tlOss;
+	TextLogging tlog;
+	
+	DetectionParams temp;
+	if(temp.load("./config/detection-params.xml", "Basic Threshold-Fraction Filter") >= 0) {
+		tlOss << "Successfully loaded detection params.";
+		tlog.info(__FILE__, __LINE__, tlOss);
 
-	//std::ostringstream tlOss;
-	//TextLogging tlog;
-
-	//tlOss << "This is a test info message.";
-	//tlog.info(__FILE__, __LINE__, tlOss);
-
-	//tlOss << "This is a test warning.";
-	//tlog.warning(__FILE__, __LINE__, tlOss);
-
-	//tlOss << "This is a test critical error.";
-	//tlog.critical(__FILE__, __LINE__, tlOss);
-
-	//tlOss << "This is another test info message.";
-	//tlog.info(__FILE__, __LINE__, tlOss);
-
-	SheetLayout temp;
-	if(temp.load("./templates/template_test.xml") >= 0) {
 		std::ostringstream debugOss;
 		debugOss << temp;
 		qDebug() << debugOss.str().c_str();
+
+		for(const auto& iter : temp.getParamTable()) {
+			debugOss.str("");
+			debugOss << "is " << iter.first << " a float? " << (temp.isFloat(iter.first) ? "true." : "false.") << std::endl;
+			debugOss << "is " << iter.first << " an int? " << (temp.isInt(iter.first) ? "true." : "false.") << std::endl;
+			qDebug() << debugOss.str().c_str();
+		}
+
 	} else {
-		//tlOss << "Failed to load sheet template.";
-		//tlog.critical(__FILE__, __LINE__, tlOss);
+		tlOss << "Failed to load detection params. See log.";
+		tlog.critical(__FILE__, __LINE__, tlOss);
 	}
 
 	//std::vector<int> compression_params;
