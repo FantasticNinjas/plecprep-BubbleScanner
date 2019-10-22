@@ -1,6 +1,7 @@
 #include "ScantronReader.hxx"
 #include "DetectionParams.hxx"
 #include "TextLogging.hxx"
+#include "SheetScan.hxx"
 #include "SheetLayout.hxx"
 #include <QtWidgets/QApplication>
 #include "Reader.hxx"
@@ -12,31 +13,46 @@
 int main(int argc, char *argv[])
 {
 
-	//TextLogging::setIsDebugVerbosityEnabledDefault(true);
+	TextLogging::setIsDebugVerbosityEnabledDefault(true);
 	
 	std::ostringstream tlOss;
 	TextLogging tlog;
 	
-	DetectionParams temp;
-	if(temp.load("./config/detection-params.xml", "Basic Threshold-Fraction Filter") >= 0) {
+	DetectionParams params;
+	if(params.load("./config/detection-params.xml", "Basic sheet alignment algorithm") >= 0) {
 		tlOss << "Successfully loaded detection params.";
 		tlog.info(__FILE__, __LINE__, tlOss);
 
 		std::ostringstream debugOss;
-		debugOss << temp;
+		debugOss << params;
 		qDebug() << debugOss.str().c_str();
 
-		for(const auto& iter : temp.getParamTable()) {
+		for(const auto& iter : params.getParamTable()) {
 			debugOss.str("");
-			debugOss << "is " << iter.first << " a float? " << (temp.isFloat(iter.first) ? "true." : "false.") << std::endl;
-			debugOss << "is " << iter.first << " an int? " << (temp.isInt(iter.first) ? "true." : "false.") << std::endl;
+			debugOss << "is " << iter.first << " a float? " << (params.isFloat(iter.first) ? "true." : "false.") << std::endl;
+			debugOss << "is " << iter.first << " an int? " << (params.isInt(iter.first) ? "true." : "false.") << std::endl;
 			qDebug() << debugOss.str().c_str();
 		}
 
 	} else {
 		tlOss << "Failed to load detection params. See log.";
-		tlog.critical(__FILE__, __LINE__, tlOss);
+		tlog.fatal(__FILE__, __LINE__, tlOss);
 	}
+
+	SheetScan scan;
+	if(scan.load("./test_images/filled.png") < 0) {
+		tlOss << "Failed to load image.";
+		tlog.fatal(__FILE__, __LINE__, tlOss);
+	}
+
+	scan.initDetection(params);
+	scan.alignScan(params);
+	scan.saveProcessedCache("./processed.png");
+	scan.saveAnnotated("./annotated.png");
+
+
+
+
 
 	//std::vector<int> compression_params;
 	//compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);

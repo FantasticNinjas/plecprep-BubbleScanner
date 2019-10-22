@@ -39,7 +39,7 @@ TextLogging::TextLogging() {
 TextLogging::~TextLogging() = default;
 
 void TextLogging::debug(char * file, int line, std::ostringstream& tlOss) {
-	if(isDebugVerbosityEnabled_) {
+	if(isDebugVerbosityEnabled_ || isDebugVerbosityEnabledDefault_) {
 		log(file, line, tlOss, LogLevel::DEBUG);
 	}
 	//Reset the supplied ostringstream so that it can be reused.
@@ -47,7 +47,7 @@ void TextLogging::debug(char * file, int line, std::ostringstream& tlOss) {
 }
 
 void TextLogging::info(char * file, int line, std::ostringstream& tlOss) {
-	if(isInfoVerbosityEnabled_) {
+	if(isInfoVerbosityEnabled_ || isInfoVerbosityEnabledDefault_) {
 		log(file, line, tlOss, LogLevel::INFO);
 	}
 	//Reset the supplied ostringstream so that it can be reused.
@@ -55,7 +55,7 @@ void TextLogging::info(char * file, int line, std::ostringstream& tlOss) {
 }
 
 void TextLogging::warning(char * file, int line, std::ostringstream& tlOss) {
-	if(isWarningVerbosityEnabled_) {
+	if(isWarningVerbosityEnabled_ || isWarningVerbosityEnabledDefault_) {
 		log(file, line, tlOss, LogLevel::WARNING);
 	}
 	//Reset the supplied ostringstream so that it can be reused.
@@ -63,7 +63,7 @@ void TextLogging::warning(char * file, int line, std::ostringstream& tlOss) {
 }
 
 void TextLogging::critical(char * file, int line, std::ostringstream& tlOss) {
-	if(isCriticalVerbosityEnabled_) {
+	if(isCriticalVerbosityEnabled_ || isCriticalVerbosityEnabledDefault_) {
 		log(file, line, tlOss, LogLevel::CRITICAL);
 	}
 	//Reset the supplied ostringstream so that it can be reused.
@@ -71,7 +71,7 @@ void TextLogging::critical(char * file, int line, std::ostringstream& tlOss) {
 }
 
 void TextLogging::fatal(char * file, int line, std::ostringstream& tlOss) {
-	if(isFatalVerbosityEnabled_) {
+	if(isFatalVerbosityEnabled_ || isFatalVerbosityEnabledDefault_) {
 		log(file, line, tlOss, LogLevel::FATAL);
 	}
 	//Reset the supplied ostringstream so that it can be reused.

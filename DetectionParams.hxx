@@ -6,7 +6,8 @@
 
 enum class FilterType {
 	UNKNOWN,
-	THRESH_FRAC
+	THRESH_FRAC,
+	THRESH_CONTOUR
 };
 
 std::string toString(const FilterType& filterType);

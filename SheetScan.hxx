@@ -25,6 +25,8 @@ public:
 	///
 	int initDetection(const DetectionParams& detectionParams);
 
+	int alignScan(const DetectionParams& detectionParams);
+
 	///
 	/// <summary> Check whether or not a circular region of the image is filled in. </summary>
 	///
@@ -38,9 +40,9 @@ public:
 	int isCircleFilled(const cv::Vec3f& circle, const DetectionParams& detectionParams);
 private:
 
-	int initThreshFrac(const DetectionParams& detectionParams);
-
-	int isCircleFilledThreshFrac(const cv::Vec3f& circle, const DetectionParams& detectionParams);
+	int initThresh(const DetectionParams& detectionParams);
+	int isCircleFilledFrac(const cv::Vec3f& circle, const DetectionParams& detectionParams);
+	int alignScanContour(const DetectionParams& detectionParams);
 
 	///
 	/// <summary> Convert an absolute coordinate on an image to a "normalized" coordinate system that does not depend on image resolution. </summary>
@@ -65,6 +67,10 @@ private:
 	///        keeps 0 in the corner, makes the highest x coordinate 1, and keeps pixels square (i.e. the highest y coordinate depends on the aspect ratio.</note>
 	///
 	float absolute(float normalized);
+
+	cv::Point rotate(const cv::Point& point, const cv::Point& center, float angle);
+
+	static float getFilledFraction(const cv::Mat& image, const cv::RotatedRect& region);
 
 	static int savePng(const cv::Mat& image, const std::string& filename);
 

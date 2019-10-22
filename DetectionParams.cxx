@@ -107,7 +107,7 @@ int DetectionParams::load(const std::string& filename, const std::string& filter
 
 	//Iterate through all of the filters in the configuration file to find the requested filter.
 	pugi::xml_node filterNode;
-	for(filterNode = filterParamsNode.child("filter"); filterNode; filterParamsNode = filterParamsNode.next_sibling("filter")) {
+	for(filterNode = filterParamsNode.child("filter"); filterParamsNode; filterNode = filterNode.next_sibling("filter")) {
 		//Get name attribute of current filter
 		pugi::xml_attribute nameAttr = filterNode.attribute("name");
 		if(!nameAttr) {
@@ -156,10 +156,6 @@ int DetectionParams::load(const std::string& filename, const std::string& filter
 
 			//Get the value of the current parameter
 			std::string paramValue = paramNode.text().get();
-			if(paramValue.empty()) {
-				tlOss << "Parameter \"" << paramName << "\" on filter configuration \"" << filterName << "\" does not have a value";
-				tlog.warning(__FILE__, __LINE__, tlOss);
-			}
 
 			//Add the parameter to the list
 			paramTable_[paramName] = paramValue;
@@ -194,6 +190,8 @@ std::string toString(const FilterType& filterType) {
 FilterType parseFilterType(const std::string& str) {
 	if(str == toString(FilterType::THRESH_FRAC)) {
 		return FilterType::THRESH_FRAC;
+	} else if(str == toString(FilterType::THRESH_CONTOUR)) {
+		return FilterType::THRESH_CONTOUR;
 	} else if(str == toString(FilterType::UNKNOWN)) {
 		return FilterType::UNKNOWN;
 	} else {
@@ -207,6 +205,9 @@ std::ostream& operator<<(std::ostream& os, const FilterType& filterType) {
 	switch(filterType) {
 	case FilterType::THRESH_FRAC:
 		os << "THRESH_FRAC";
+		break;
+	case FilterType::THRESH_CONTOUR:
+		os << "THRESH_CONTOUR";
 		break;
 	case FilterType::UNKNOWN:
 		os << "UNKNOWN";
