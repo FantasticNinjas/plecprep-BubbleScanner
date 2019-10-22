@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <sheet title="Example Template">
 
-  <question-groups>
+  <!-- Side 1 Questions -->
+  <side>
       <group name="Test Problems" type="problems">
           <question>
               <bubble  content="A" x="1.5" y="0.3" r="0.2" />
@@ -45,6 +46,32 @@
               <bubble  content="L" x="2.5" y="10.8" r="0.2" />
           </question>
       </group>
-  </question-groups>
+  </side>
+
+  <!-- Side 2 Questions -->
+  <side>
+    <group name="Test Problems" type="problems">
+      <question>
+        <bubble  content="A" x="1.5" y="0.3" r="0.2" />
+        <bubble  content="B" x="2.0" y="0.3" r="0.2" />
+        <bubble  content="C" x="2.5" y="0.3" r="0.2" />
+      </question>
+      <question>
+        <bubble  content="A" x="1.5" y="1.3" r="0.2" />
+        <bubble  content="B" x="2.0" y="1.3" r="0.2" />
+        <bubble  content="C" x="2.5" y="1.3" r="0.2" />
+      </question>
+      <question>
+        <bubble  content="A" x="1.5" y="2.3" r="0.2" />
+        <bubble  content="B" x="2.0" y="2.3" r="0.2" />
+        <bubble  content="C" x="2.5" y="2.3" r="0.2" />
+      </question>
+      <question>
+        <bubble  content="A" x="1.5" y="3.3" r="0.2" />
+        <bubble  content="B" x="2.0" y="3.3" r="0.2" />
+        <bubble  content="C" x="2.5" y="3.3" r="0.2" />
+      </question>
+    </group>
+  </side>
   
 </sheet>

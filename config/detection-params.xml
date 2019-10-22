@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<filter-params>
+  <filter name="Basic Threshold-Fraction Filter" type="THRESH_FRAC">
+    <channel>1</channel>
+    <preblur>5.0</preblur>
+    <threshold>10</threshold>7
+    <invert/>
+    <fraction>0.3</fraction>
+  </filter>
+  <filter name="Basic sheet alignment algorithm" type="THRESH_CONTOUR">
+    <channel>1</channel>
+    <preblur>5.0</preblur>
+    <threshold>25</threshold>
+    <invert/>
+
+    <alignment-approx-tollerance>0.05</alignment-approx-tollerance>
+    <alignment-min-width>0.003</alignment-min-width>
+    <alignment-max-width>0.008</alignment-max-width>
+    <alignment-min-height>0.008</alignment-min-height>
+    <alignment-max-height>0.02</alignment-max-height>
+    <alignment-min-filled>0.8</alignment-min-filled>
+
+    <crop-offset-fraction-top>0.755</crop-offset-fraction-top>
+    <crop-offset-fraction-bottom>0.01</crop-offset-fraction-bottom>
+    <crop-offset-fraction-left>0.02</crop-offset-fraction-left>
+    <crop-offset-fraction-right>1.03</crop-offset-fraction-right>
+</filter>
+</filter-params>
