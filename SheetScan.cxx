@@ -35,15 +35,25 @@ int SheetScan::load(const std::string& filename) {
 	}
 
 	if(status >= 0) {
-		annotatedImage = sheetImage_.clone();
+		resetAnnotations();
 	}
 
 	return status;
 }
 
+int SheetScan::saveSheetImage(const std::string& filename) {
+	int status = 0;
+	if(savePng(sheetImage_, filename) < 0) {
+		tlOss << "Failed to save sheet image \"" << filename << "\"";
+		tlog.critical(__FILE__, __LINE__, tlOss);
+		status = -1;
+	}
+	return status;
+}
+
 int SheetScan::saveAnnotated(const std::string& filename) {
 	int status = 0;
-	if(savePng(annotatedImage, filename) < 0) {
+	if(savePng(annotatedImage_, filename) < 0) {
 		tlOss << "Failed to save annotated image \"" << filename << "\"";
 		tlog.critical(__FILE__, __LINE__, tlOss);
 		status = -1;
@@ -54,20 +64,33 @@ int SheetScan::saveAnnotated(const std::string& filename) {
 int SheetScan::saveProcessedCache(const std::string & filename) {
 	int status = 0;
 	if(savePng(processedImageCache_, filename) < 0) {
-		tlOss << "Failed to save processed cache \"" << filename << "\"";
+		tlOss << "Failed to save processed image cache \"" << filename << "\"";
 		tlog.critical(__FILE__, __LINE__, tlOss);
 		status = -1;
 	}
 	return status;
 }
 
-int SheetScan::initDetection(const DetectionParams& detectionParams) {
+const cv::Mat& SheetScan::getSheetImage() {
+	return sheetImage_;
+}
+const cv::Mat& SheetScan::getAnnotated() {
+	return annotatedImage_;
+}
+const cv::Mat& SheetScan::getProcessedCache() {
+	return processedImageCache_;
+}
+
+int SheetScan::setupAlgorithm(const DetectionParams& detectionParams) {
 	int status = 0;
 
 	switch(detectionParams.getFilterType()) {
+
+	//Algorithms that use threshold as an initialization step
 	case FilterType::THRESH_FRAC:
 	case FilterType::THRESH_CONTOUR:
-		status = initThresh(detectionParams);
+	case FilterType::THRESH_HCIRCLES:
+		status = threshold(detectionParams);
 		break;
 	default:
 		status = -1;
@@ -84,6 +107,22 @@ int SheetScan::isCircleFilled(const cv::Vec3f& circle, const DetectionParams & d
 	switch(detectionParams.getFilterType()) {
 	case FilterType::THRESH_FRAC:
 		status = isCircleFilledFrac(circle, detectionParams);
+		break;
+	default:
+		status = -1;
+		tlOss << "Encountered unhandled filter type: " << detectionParams.getFilterType();
+		tlog.warning(__FILE__, __LINE__, tlOss);
+	}
+
+	return status;
+}
+
+int SheetScan::findCircles(std::vector<cv::Vec3f>& circles, const DetectionParams & detectionParams) {
+	int status = 0;
+
+	switch(detectionParams.getFilterType()) {
+	case FilterType::THRESH_HCIRCLES:
+		status = findCirclesHough(circles, detectionParams);
 		break;
 	default:
 		status = -1;
@@ -114,7 +153,7 @@ int SheetScan::alignScan(const DetectionParams& detectionParams) {
 //    THRESH_FRAC Algorithm     //
 //------------------------------//
 
-int SheetScan::initThresh(const DetectionParams& detectionParams) {
+int SheetScan::threshold(const DetectionParams& detectionParams) {
 	int status = 0;
 
 	//Extract highest contrast channel (as specified by the configuration parameters) if channel property is
@@ -360,8 +399,8 @@ int SheetScan::alignScanContour(const DetectionParams& detectionParams) {
 	// Get the minimum height for a rectangle to keep
 	if(!detectionParams.isFloat("alignment-min-height")) {
 		status = -1;
-tlOss << "Minimum rectangle height (alignment-min-height) property on \"" << detectionParams.getName() << "\" configuration must exist and be a number";
-tlog.critical(__FILE__, __LINE__, tlOss);
+		tlOss << "Minimum rectangle height (alignment-min-height) property on \"" << detectionParams.getName() << "\" configuration must exist and be a number";
+		tlog.critical(__FILE__, __LINE__, tlOss);
 	}
 
 	float minHeight;
@@ -450,11 +489,11 @@ tlog.critical(__FILE__, __LINE__, tlOss);
 				continue;
 			}
 
-			cv::drawContours(annotatedImage, std::vector<std::vector<cv::Point>>({approx}), -1, cv::Scalar(255, 0, 255), 2);
+			cv::drawContours(annotatedImage_, std::vector<std::vector<cv::Point>>({approx}), -1, cv::Scalar(255, 0, 255), 2);
 			alignmentMarks.push_back((cv::Point)boundingBox.center);
 		}
 
-		cv::drawContours(annotatedImage, std::vector<std::vector<cv::Point>>({alignmentMarks}), -1, cv::Scalar(255, 0, 255), 1);
+		cv::drawContours(annotatedImage_, std::vector<std::vector<cv::Point>>({alignmentMarks}), -1, cv::Scalar(255, 0, 255), 1);
 	}
 
 	cv::Point firstMark;
@@ -489,17 +528,22 @@ tlog.critical(__FILE__, __LINE__, tlOss);
 
 		//Rotate image by angle in order to reverse 
 
-		cv::Point2f center(annotatedImage.cols / 2., annotatedImage.rows / 2.);
+		cv::Point2f center(annotatedImage_.cols / 2., annotatedImage_.rows / 2.);
 		cv::Mat rotationMatrix = cv::getRotationMatrix2D(center, angleDeg, 1.0);
-		cv::warpAffine(annotatedImage, annotatedImage, rotationMatrix, cv::Size(annotatedImage.cols, annotatedImage.rows));
+		//Rotate both original sheet image and annotated image so that the change will be reflected both by subsequent image processing
+		//and debug output
+		cv::warpAffine(sheetImage_, sheetImage_, rotationMatrix, cv::Size(annotatedImage_.cols, annotatedImage_.rows));
+		cv::warpAffine(annotatedImage_, annotatedImage_, rotationMatrix, cv::Size(annotatedImage_.cols, annotatedImage_.rows));
 
 		//Rotate firstMark, and lastMark points so that they will be correct for later calculations
 		firstMark = SheetScan::rotate(firstMark, center, -angleRad);
 		lastMark = SheetScan::rotate(lastMark, center, -angleRad);
 	}
 
-	//Get the size that the image should be cropped to, relative to the distance between the alignment marks
-	//(because it's possible that different scanners may have size beds)
+	//Get the dimensions to crop the scan to. The scan will be cropped in a rectangle "around" the first alignment mark. the topOffset, bottomOffset,
+	//leftOffset, and rightOffset parameters define how far the edge of the rectangle should be offset from the first alignment mark. These numbers
+	//are multiplied by the distance in pixels between the first and last alignment mark. This is done so that the image will be aligned the same
+	//regardless of the size of the scanning bed used
 	
 	//Get the bottom offset
 	if(!detectionParams.isFloat("crop-offset-fraction-bottom")) {
@@ -556,25 +600,184 @@ tlog.critical(__FILE__, __LINE__, tlOss);
 		tlOss << "Left crop offset set to " << rightOffset;
 		tlog.debug(__FILE__, __LINE__, tlOss);
 	}
+	
+	cv::Rect cropBox;
+	if(status >= 0) {
+		float distance = sqrt(markDelta.x * markDelta.x + markDelta.y + markDelta.y);
+		//Create rectangle around the first alignment mark with each side offset by the specified value
+		cropBox.x = firstMark.x - distance * leftOffset;
+		cropBox.y = firstMark.y - distance * topOffset;
+		cropBox.width = distance * (leftOffset + rightOffset);
+		cropBox.height = distance * (bottomOffset + topOffset);
 
+		//Check that crop rectangle is entirely within the image. If it is not, report an error to avoid exception when cropping image.
+
+		if((cropBox & cv::Rect(0, 0, sheetImage_.cols, sheetImage_.rows)) != cropBox) {
+			status = -1;
+			tlOss << "Unable to crop image, crop offset parameters exceed bounds of image.";
+			tlog.critical(__FILE__, __LINE__, tlOss);
+		}
+	}
 
 	if(status >= 0) {
-		//Crop image around alignment marks
-		float distance = sqrt(markDelta.x * markDelta.x + markDelta.y + markDelta.y);
-		cv::Rect cropBox(firstMark.x - distance * leftOffset, firstMark.y - distance * topOffset, distance * (leftOffset + rightOffset), distance * (bottomOffset + topOffset));
-
-		annotatedImage = annotatedImage(cropBox);
+		//Crop images to the rectangle
+		sheetImage_ = sheetImage_(cropBox);
+		annotatedImage_ = annotatedImage_(cropBox);
 	}
 
 	return status;
 }
 
-int SheetScan::savePng(const cv::Mat& image, const std::string& filename) {
+int SheetScan::findCirclesHough(std::vector<cv::Vec3f>& circles, const DetectionParams & detectionParams) {
+	int status = 0;
+
+	//Get parameters for Hough transform method
+
+	//Get edge detection threshold, which determines how sensitive the edge detection algorithm is. Lower values mean more sensitivity
+	if(!detectionParams.isFloat("circle-edge-detection-thresh")) {
+		status = -1;
+		tlOss << "Edge detection threshold (circle-edge-detection-thresh) property on \"" << detectionParams.getName() << "\" configuration must exist and be a number";
+		tlog.critical(__FILE__, __LINE__, tlOss);
+	}
+
+	float edgeThreshold;
+	if(status >= 0) {
+		edgeThreshold = detectionParams.getAsFloat("circle-edge-detection-thresh");
+		if(edgeThreshold < 0) {
+			status = -1;
+			tlOss << "Edge detection threshold (circle-edge-detection-thresh) property on \"" << detectionParams.getName() << "\" must be a non-negative number.";
+			tlog.critical(__FILE__, __LINE__, tlOss);
+		} else {
+			tlOss << "Edge detection threshold set to " << edgeThreshold;
+			tlog.debug(__FILE__, __LINE__, tlOss);
+		}
+	}
+
+	//Get the circle accumulator threshold, which determines how circular a shape must be to be recognized as a circle. Higher values mean stricter circles
+	if(!detectionParams.isFloat("circle-accumulator-thresh")) {
+		status = -1;
+		tlOss << "Circle accumulator threshold (circle-accumulator-thresh) property on \"" << detectionParams.getName() << "\" configuration must exist and be a number";
+		tlog.critical(__FILE__, __LINE__, tlOss);
+	}
+
+	float accumThreshold;
+	if(status >= 0) {
+		accumThreshold = detectionParams.getAsFloat("circle-accumulator-thresh");
+		if(accumThreshold < 0) {
+			status = -1;
+			tlOss << "Circle accumulator threshold (circle-accumulator-thresh) property on \"" << detectionParams.getName() << "\" must be a non-negative number.";
+			tlog.critical(__FILE__, __LINE__, tlOss);
+		} else {
+			tlOss << "Circle accumulator threshold set to " << accumThreshold;
+			tlog.debug(__FILE__, __LINE__, tlOss);
+		}
+	}
+
+	//Get the minimum allowable distance between circle centers. This is a normalized coordinate. See SheetScan::normalize() for more details
+	if(!detectionParams.isFloat("circle-min-distance")) {
+		status = -1;
+		tlOss << "Minimum circle distance (circle-min-distance) property on \"" << detectionParams.getName() << "\" configuration must exist and be a number";
+		tlog.critical(__FILE__, __LINE__, tlOss);
+	}
+
+	int minDistanceAbsolute;
+	if(status >= 0) {
+		float minDistance = detectionParams.getAsFloat("circle-min-distance");
+		minDistanceAbsolute = absolute(minDistance);
+		if(minDistance < 0) {
+			status = -1;
+			tlOss << "Minimum circle distance (circle-min-distance) property on \"" << detectionParams.getName() << "\" must be a non-negative number.";
+			tlog.critical(__FILE__, __LINE__, tlOss);
+		} else {
+			tlOss << "Minimum circle distance set to " << minDistance << " (" << minDistanceAbsolute << "px)";
+			tlog.debug(__FILE__, __LINE__, tlOss);
+		}
+	}
+
+	//Get the minimum allowable radius for a circle. This is a normalized coordinate.
+	if(!detectionParams.isFloat("circle-min-radius")) {
+		status = -1;
+		tlOss << "Minimum circle radius (circle-min-radius) property on \"" << detectionParams.getName() << "\" configuration must exist and be a number";
+		tlog.critical(__FILE__, __LINE__, tlOss);
+	}
+
+	int minRadiusAbsolute;
+	if(status >= 0) {
+		float minRadius = detectionParams.getAsFloat("circle-min-radius");
+		minRadiusAbsolute = absolute(minRadius);
+		if(minRadius < 0) {
+			status = -1;
+			tlOss << "Minimum circle radius (circle-min-radius) property on \"" << detectionParams.getName() << "\" must be a non-negative number.";
+			tlog.critical(__FILE__, __LINE__, tlOss);
+		} else {
+			tlOss << "Minimum circle radius set to " << minRadius << " (" << minRadiusAbsolute << "px)";
+			tlog.debug(__FILE__, __LINE__, tlOss);
+		}
+	}
+
+	//Get the maximum allowable radius for a circle. This is a normalized coordinate.
+	if(!detectionParams.isFloat("circle-max-radius")) {
+		status = -1;
+		tlOss << "Maximum circle radius (circle-min-radius) property on \"" << detectionParams.getName() << "\" configuration must exist and be a number";
+		tlog.critical(__FILE__, __LINE__, tlOss);
+	}
+
+	int maxRadiusAbsolute;
+	if(status >= 0) {
+		float maxRadius = detectionParams.getAsFloat("circle-max-radius");
+		maxRadiusAbsolute = absolute(maxRadius);
+		if(maxRadius < 0) {
+			status = -1;
+			tlOss << "Maximum circle radius (circle-max-radius) property on \"" << detectionParams.getName() << "\" must be a non-negative number.";
+			tlog.critical(__FILE__, __LINE__, tlOss);
+		} else {
+			tlOss << "Maximum circle radius set to " << maxRadius << " (" << maxRadiusAbsolute << "px)";
+			tlog.debug(__FILE__, __LINE__, tlOss);
+		}
+	}
+
+	//Find circles in the image
+	if(status >= 0) {
+		cv::HoughCircles(processedImageCache_, circles, CV_HOUGH_GRADIENT, 1, minDistanceAbsolute, edgeThreshold, accumThreshold, minRadiusAbsolute, maxRadiusAbsolute);
+
+		//Normalize circle coordinates
+		for(cv::Vec3f& circle : circles) {
+			circle[0] = normalized(circle[0]);
+			circle[1] = normalized(circle[1]);
+			circle[2] = normalized(circle[2]);
+		}
+	}
+
+	return status;
+}
+
+void SheetScan::annotateCircle(const cv::Vec3f & circle, const cv::Scalar & color, int thickness) {
+	cv::Point center(absolute(circle[0]), absolute(circle[1]));
+	int radius = absolute(circle[2]);
+	cv::circle(annotatedImage_, center, radius, color, thickness);
+}
+
+void SheetScan::annotateCircles(const std::map<cv::Vec3f, cv::Scalar>& circles, int thickness) {
+	for(auto& iter : circles) {
+		annotateCircle(iter.first, iter.second, thickness);
+	}
+}
+
+void SheetScan::annotateRect(const cv::Rect2f& rect, const cv::Scalar& color, int thickness) {
+	cv::Rect absoluteRect(absolute(rect.x), absolute(rect.y), absolute(rect.width), absolute(rect.height));
+	cv::rectangle(annotatedImage_, absoluteRect, color, thickness);
+}
+
+void SheetScan::resetAnnotations() {
+	annotatedImage_ = sheetImage_.clone();
+}
+
+int SheetScan::savePng(const cv::Mat& image, const std::string& filename, int compressionLevel) {
 	int status = 0;
 	
 	std::vector<int> compression_params;
 	compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
-	compression_params.push_back(3);
+	compression_params.push_back(compressionLevel);
 
 	try {
 		cv::imwrite(filename, image, compression_params);
@@ -591,8 +794,8 @@ float SheetScan::normalized(float absolute) {
 	return absolute / sheetImage_.cols;
 }
 
-float SheetScan::absolute(float normalized) {
-	return normalized * sheetImage_.cols;
+int SheetScan::absolute(float normalized) {
+	return cvRound(normalized * sheetImage_.cols);
 }
 
 cv::Point SheetScan::rotate(const cv::Point& point, const cv::Point& center, float angle) {
