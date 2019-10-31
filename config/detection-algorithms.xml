@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<filter-params>
+  <filter name="Basic Threshold-Fraction Filter" type="THRESH_FRAC">
+    <channel>1</channel>
+    <preblur>5.0</preblur>
+    <threshold>10</threshold>7
+    <invert/>
+    <fraction>0.3</fraction>
+  </filter>
+</filter-params>

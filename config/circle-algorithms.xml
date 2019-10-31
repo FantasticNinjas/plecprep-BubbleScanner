@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<filter-params>
+  <filter name="Hough Transform Filter" type="THRESH_HCIRCLES">
+    <channel>2</channel>
+    <preblur>5.0</preblur>
+    <threshold>10</threshold>7
+    <invert/>
+
+    <circle-edge-detection-thresh>30.0</circle-edge-detection-thresh>
+    <circle-accumulator-thresh>20.0</circle-accumulator-thresh>
+    <circle-min-distance>0.004</circle-min-distance>
+    <circle-min-radius>0.004</circle-min-radius>
+    <circle-max-radius>0.007</circle-max-radius>
+  </filter>
+</filter-params>
