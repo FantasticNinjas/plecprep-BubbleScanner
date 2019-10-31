@@ -71,6 +71,19 @@ std::string DetectionParams::getAsStr(const std::string& paramName) const {
 	return value;
 }
 
+void DetectionParams::set(const std::string& paramName, float value) {
+	set(paramName, std::to_string(value));
+}
+
+void DetectionParams::set(const std::string& paramName, int value) {
+	set(paramName, std::to_string(value));
+}
+
+void DetectionParams::set(const std::string& paramName, const std::string& value) {
+	tlOss << "Set parameter \"" << paramName << "\" to \"" << value << "\"";
+	tlog.debug(__FILE__, __LINE__, tlOss);
+	paramTable_[paramName] = value;
+}
 
 
 const std::map<std::string, std::string>& DetectionParams::getParamTable() const {
@@ -169,6 +182,12 @@ int DetectionParams::load(const std::string& filename, const std::string& filter
 	return status;
 }
 
+void DetectionParams::reset() {
+	name_ = "";
+	filterType_ = FilterType::UNKNOWN;
+	paramTable_.clear();
+}
+
 int DetectionParams::getFilterList(const std::string& filename, std::vector<std::string>& filters) {
 	return 0;
 }
@@ -192,6 +211,8 @@ FilterType parseFilterType(const std::string& str) {
 		return FilterType::THRESH_FRAC;
 	} else if(str == toString(FilterType::THRESH_CONTOUR)) {
 		return FilterType::THRESH_CONTOUR;
+	} else if(str == toString(FilterType::THRESH_HCIRCLES)) {
+		return FilterType::THRESH_HCIRCLES;
 	} else if(str == toString(FilterType::UNKNOWN)) {
 		return FilterType::UNKNOWN;
 	} else {
@@ -211,6 +232,9 @@ std::ostream& operator<<(std::ostream& os, const FilterType& filterType) {
 		break;
 	case FilterType::UNKNOWN:
 		os << "UNKNOWN";
+		break;
+	case FilterType::THRESH_HCIRCLES:
+		os << "THRESH_HCIRCLES";
 		break;
 	default:
 		os << "UNKNOWN";

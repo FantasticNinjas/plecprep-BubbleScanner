@@ -7,7 +7,8 @@
 enum class FilterType {
 	UNKNOWN,
 	THRESH_FRAC,
-	THRESH_CONTOUR
+	THRESH_CONTOUR,
+	THRESH_HCIRCLES
 };
 
 std::string toString(const FilterType& filterType);
@@ -85,6 +86,10 @@ public:
 	///
 	std::string getAsStr(const std::string& paramName) const;
 
+	void set(const std::string& paramName, float value);
+	void set(const std::string& paramName, int value);
+	void set(const std::string& paramName, const std::string& value);
+
 	///
 	/// @brief Get a reference to a map of every parameter and its value
 	///
@@ -102,6 +107,11 @@ public:
 	int load(const std::string& filename, const std::string& filterName);
 
 	///
+	/// <summary> Remove all of the parameters and reset the object </summary>
+	///
+	void reset();
+
+	///
 	/// @brief Get a list of all detection algorithm configurations present in a particular filter config file
 	///
 	/// @param[in] filename The name of the filter config file
@@ -114,9 +124,9 @@ public:
 	FilterType getFilterType() const;
 
 private:
-	std::string name_;
-	FilterType filterType_;
-	std::map<std::string, std::string> paramTable_;
+	std::string name_{};
+	FilterType filterType_{};
+	std::map<std::string, std::string> paramTable_{};
 };
 
 std::ostream& operator<<(std::ostream& os, const DetectionParams& detectionParams);
