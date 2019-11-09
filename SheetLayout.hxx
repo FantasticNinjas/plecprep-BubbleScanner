@@ -37,11 +37,27 @@ public:
 	///
 	int save(const std::string& filename) const;
 
+	void reset();
+
+	///
+	/// <summary> Get a list of the side layouts on this sheet layout </summary>
+	///
 	const std::vector<struct SideLayout>& getSideLayouts() const;
 	const std::string& getTitle() const;
+	const std::string& getBackgroundImageFilename() const;
+
+	///
+	/// <summary> Get the title of a sheet layout from its file path. This function may be desirable because it only parses a small portion of the sheet layout and will therefore be more efficient. </summary>
+	///
+	/// <param name="filename"> The filename of the sheet layout file </param>
+	///
+	/// <return> The title of the sheet layout, or an empty string if an error occured. </return>
+	///
+	static std::string getLayoutTitle(const std::string& filename);
 
 private:
 	std::string title_;
+	std::string backgroundImage_;
 	std::vector<struct SideLayout> sideLayouts_;
 };
 
@@ -70,6 +86,8 @@ struct QuestionGroupLayout {
 		STRING
 	};
 
+	cv::Rect2f boundingBox() const;
+
 	inline void addQuestion(const struct QuestionLayout& question) {
 		questions_.push_back(question);
 	}
@@ -89,6 +107,8 @@ struct QuestionGroupLayout {
 struct QuestionLayout {
 	size_t questionNumber_;
 
+	cv::Rect2f boundingBox() const;
+
 	inline void addBubble(const struct BubbleLayout& bubble) {
 		bubbles_.push_back(bubble);
 	}
@@ -100,6 +120,8 @@ struct QuestionLayout {
 /// @brief Represents a single bubble on a sheet. Should always be part of a QuestionLayout.
 ///
 struct BubbleLayout {
+	cv::Rect2f boundingBox() const;
+
 	std::string answer_;
 	cv::Vec3f location_;
 };

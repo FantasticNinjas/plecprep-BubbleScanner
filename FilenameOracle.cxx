@@ -2,12 +2,17 @@
 
 
 std::string FilenameOracle::layoutDirectoryFilename_ = "./config/layouts/";
+std::string FilenameOracle::layoutImageDirectory_ = "images/";
 std::string FilenameOracle::detectionAlgorithmsFilename_ = "./config/detection-algorithms.xml";
 std::string FilenameOracle::alignmentAlgorithmsFilename_ = "./config/alignment-algorithms.xml";
 std::string FilenameOracle::circleAlgorithmsFilename_ = "./config/circle-algorithms.xml";
 
 const std::string& FilenameOracle::getLayoutDirectoryFilename() {
 	return layoutDirectoryFilename_;
+}
+
+const std::string& FilenameOracle::getImageDirectory() {
+	return layoutImageDirectory_;
 }
 
 const std::string& FilenameOracle::getDetectionAlgorithmsFilename() {

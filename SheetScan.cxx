@@ -13,7 +13,9 @@ SheetScan::SheetScan() = default;
 SheetScan::~SheetScan() = default;
 
 SheetScan::SheetScan(const SheetScan& other) {
-	sheetImage_ = other.sheetImage_;
+	sheetImage_ = other.sheetImage_.clone();
+	annotatedImage_ = other.annotatedImage_.clone();
+	processedImageCache_ = other.processedImageCache_.clone();
 }
 
 SheetScan::SheetScan(const cv::Mat& sheetImage) {
@@ -772,6 +774,18 @@ void SheetScan::resetAnnotations() {
 	annotatedImage_ = sheetImage_.clone();
 }
 
+QPixmap SheetScan::getAnnotatedPixmap() {
+	return matToPixmap(annotatedImage_);
+}
+
+QPixmap SheetScan::getOriginalPixmap() {
+	return matToPixmap(sheetImage_);
+}
+
+QPixmap SheetScan::getProcessedPixmap() {
+	return matToPixmap(processedImageCache_);
+}
+
 int SheetScan::savePng(const cv::Mat& image, const std::string& filename, int compressionLevel) {
 	int status = 0;
 	
@@ -861,4 +875,21 @@ float SheetScan::getFilledFraction(const cv::Mat & image, const cv::RotatedRect 
 	}
 
 	return fraction;
+}
+
+QPixmap SheetScan::matToPixmap(const cv::Mat& mat) {
+	//Convert the image from BGR or gray (used by OpenCV) to RGB (used by QT)
+	cv::Mat rgbMat;
+	if(mat.channels() == 3) {
+		cv::cvtColor(mat, rgbMat, CV_BGR2RGB);
+	} else {
+		cv::cvtColor(mat, rgbMat, CV_GRAY2RGB);
+	}
+	
+	if(rgbMat.data) {
+		//Convert to QImage and then to QPixmap
+		return QPixmap::fromImage(QImage(rgbMat.data, rgbMat.cols, rgbMat.rows, rgbMat.step, QImage::Format_RGB888));
+	} else {
+		return QPixmap();
+	}
 }

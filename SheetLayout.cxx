@@ -18,10 +18,10 @@ SheetLayout::~SheetLayout() = default;
 
 int SheetLayout::load(const std::string & filename) {
 
-	//std::ostringstream tlOss;
-	//TextLogging tlog;
-
 	int status = 0;
+
+	//Reset layout (in case this instance is being reused)
+	reset();
 
 	//Parse XML file
 
@@ -56,6 +56,20 @@ int SheetLayout::load(const std::string & filename) {
 		} else {
 			title_ = "";
 			tlOss << "Sheet layout loaded from \"" << filename << "\" does not have a name.";
+			tlog.warning(__FILE__, __LINE__, tlOss);
+		}
+	}
+
+	//Load background image (used by sheet layout editor)
+
+	pugi::xml_attribute bgImageAttr;
+	if(status >= 0) {
+		bgImageAttr = sheetNode.attribute("bg-image");
+		if(bgImageAttr) {
+			backgroundImage_ = bgImageAttr.value();
+		} else {
+			backgroundImage_ = "";
+			tlOss << "Sheet layout loaded from \"" << filename << "\" does not specify a background image.";
 			tlog.warning(__FILE__, __LINE__, tlOss);
 		}
 	}
@@ -207,6 +221,7 @@ int SheetLayout::save(const std::string &filename) const {
 	//Add sheet node
 	pugi::xml_node sheetNode = doc.append_child("sheet");
 	sheetNode.append_attribute("title") = title_.c_str();
+	sheetNode.append_attribute("bg-image") = backgroundImage_.c_str();
 	
 	//Add nodes for each side of the sheet layout
 	for(struct SideLayout side : sideLayouts_) {
@@ -273,12 +288,21 @@ int SheetLayout::save(const std::string &filename) const {
 	return status;
 }
 
+void SheetLayout::reset() {
+	title_ = "";
+	sideLayouts_.clear();
+}
+
 const std::vector<struct SideLayout>& SheetLayout::getSideLayouts() const {
 	return sideLayouts_;
 }
 
 const std::string& SheetLayout::getTitle() const {
 	return title_;
+}
+
+const std::string& SheetLayout::getBackgroundImageFilename() const {
+	return backgroundImage_;
 }
 
 std::ostream& operator<<(std::ostream& os, const SheetLayout& sheetLayout) {
@@ -296,6 +320,130 @@ std::ostream& operator<<(std::ostream& os, const SheetLayout& sheetLayout) {
 		}
 	}
 	return os;
+}
+
+cv::Rect2f BubbleLayout::boundingBox() const {
+	return cv::Rect2f(location_[0] - location_[2], location_[1] - location_[2], 2 * location_[2], 2 * location_[2]);
+}
+
+cv::Rect2f QuestionLayout::boundingBox() const {
+	float minX = 0;
+	float maxX = 0;
+	float minY = 0;
+	float maxY = 0;
+
+	//If question has no bubbles, return an empty rectangle
+	if(!bubbles_.empty()) {
+		//If question does habe bubbles, iterate over the bounding box of each and create a bounding box that fits around all of them.
+		cv::Rect2f currentBox = bubbles_[0].boundingBox();
+		minX = currentBox.x;
+		maxX = currentBox.x + currentBox.width;
+		minY = currentBox.y;
+		maxY = currentBox.y + currentBox.width;
+		for(const auto& bubble : bubbles_) {
+			currentBox = bubble.boundingBox();
+			if(currentBox.x < minX) {
+				minX = currentBox.x;
+			}
+			if(currentBox.x + currentBox.width > maxX) {
+				maxX = currentBox.x + currentBox.width;
+			}
+			if(currentBox.y < minY) {
+				minY = currentBox.y;
+			}
+			if(currentBox.y + currentBox.height > maxY) {
+				maxY = currentBox.y + currentBox.height;
+			}
+		}
+	}
+
+	cv::Point2f topLeft(minX, minY);
+	cv::Point2f bottomRight(maxX, maxY);
+
+	return cv::Rect2f(topLeft, bottomRight);
+}
+
+cv::Rect2f QuestionGroupLayout::boundingBox() const {
+	float minX = 0;
+	float maxX = 0;
+	float minY = 0;
+	float maxY = 0;
+
+	//If question group has no questions, return an empty rectangle
+	if(!questions_.empty()) {
+		//If question group does habe questions, iterate over the bounding box of each and create a bounding box that fits around all of them.
+		cv::Rect2f currentBox = questions_[0].boundingBox();
+		minX = currentBox.x;
+		maxX = currentBox.x + currentBox.width;
+		minY = currentBox.y;
+		maxY = currentBox.y + currentBox.width;
+		for(const auto& question : questions_) {
+			currentBox = question.boundingBox();
+			if(currentBox.x < minX) {
+				minX = currentBox.x;
+			}
+			if(currentBox.x + currentBox.width > maxX) {
+				maxX = currentBox.x + currentBox.width;
+			}
+			if(currentBox.y < minY) {
+				minY = currentBox.y;
+			}
+			if(currentBox.y + currentBox.height > maxY) {
+				maxY = currentBox.y + currentBox.height;
+			}
+		}
+	}
+
+	cv::Point2f topLeft(minX, minY);
+	cv::Point2f bottomRight(maxX, maxY);
+
+	return cv::Rect2f(topLeft, bottomRight);
+}
+////////////////////////////////////
+//     STATIC UTILITY METHODS     //
+////////////////////////////////////
+
+std::string SheetLayout::getLayoutTitle(const std::string & filename) {
+	int status = 0;
+
+	//Parse XML file
+
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(filename.c_str());
+	if(result) {
+		tlOss << "Successfully parsed XML file \"" << filename << "\"";
+		tlog.debug(__FILE__, __LINE__, tlOss);
+	} else {
+		status = -1;
+		tlOss << "Failed to parse XML file \"" << filename << "\". PugiXML error message: " << result.description();
+		tlog.critical(__FILE__, __LINE__, tlOss);
+	}
+
+	//Load sheet title
+
+	pugi::xml_node sheetNode;
+	if(status >= 0) {
+		sheetNode = doc.first_child();
+		if(std::string(sheetNode.name()) != "sheet") {
+			status = -1;
+			tlOss << "Failed to load sheet layout. \"" << filename << "\" does not appear to be a template. Root node type: \"" << sheetNode.name() << "\"";
+			tlog.critical(__FILE__, __LINE__, tlOss);
+		}
+	}
+
+	std::string title = "";
+	if(status >= 0) {
+		pugi::xml_attribute sheetTitleAttr;
+		sheetTitleAttr = sheetNode.attribute("title");
+		if(sheetTitleAttr) {
+			title = sheetTitleAttr.value();
+		} else {
+			tlOss << "Sheet layout loaded from \"" << filename << "\" does not have a name.";
+			tlog.warning(__FILE__, __LINE__, tlOss);
+		}
+	}
+
+	return title;
 }
 
 

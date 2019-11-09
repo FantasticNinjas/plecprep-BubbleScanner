@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SheetLayoutEditor</class>
+ <widget class="QDialog" name="SheetLayoutEditor">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>953</width>
+    <height>866</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>SheetLayoutEditor</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <widget class="QSplitter" name="splitter_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QScrollArea" name="imageScrollArea">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scrollAreaWidgetContents">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>69</width>
+         <height>827</height>
+        </rect>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="layoutWidget">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QComboBox" name="layoutChooser"/>
+       </item>
+       <item>
+        <widget class="QSplitter" name="splitter">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <widget class="QTreeWidget" name="layoutTree">
+          <column>
+           <property name="text">
+            <string notr="true">Sheet Layout Tree</string>
+           </property>
+          </column>
+         </widget>
+         <widget class="QToolBox" name="toolBox">
+          <property name="currentIndex">
+           <number>3</number>
+          </property>
+          <widget class="QWidget" name="BubbleToolsPage">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>857</width>
+             <height>309</height>
+            </rect>
+           </property>
+           <attribute name="label">
+            <string>Bubble Tools</string>
+           </attribute>
+          </widget>
+          <widget class="QWidget" name="QuestionToolsPage">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>857</width>
+             <height>309</height>
+            </rect>
+           </property>
+           <attribute name="label">
+            <string>Question Tools</string>
+           </attribute>
+          </widget>
+          <widget class="QWidget" name="QuestionGroupTools">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>857</width>
+             <height>309</height>
+            </rect>
+           </property>
+           <attribute name="label">
+            <string>Question Group Tools</string>
+           </attribute>
+          </widget>
+          <widget class="QWidget" name="SheetLayoutTools">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>857</width>
+             <height>103</height>
+            </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <attribute name="label">
+            <string>Sheet Layout Tools</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QGroupBox" name="groupBox">
+              <property name="title">
+               <string>Image Editor</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_2">
+               <item>
+                <widget class="QPushButton" name="zoomInButton">
+                 <property name="text">
+                  <string>Zoom In</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="zoomOutButton">
+                 <property name="text">
+                  <string>Zoom Out</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="imageLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

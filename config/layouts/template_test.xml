@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<sheet title="Example Template">
+<sheet title="Example Template" bg-image="scantron_green.png">
 
   <!-- Side 1 Questions -->
   <side>

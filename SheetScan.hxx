@@ -2,6 +2,7 @@
 
 #include <string>
 #include <opencv2\opencv.hpp>
+#include <QPixmap>
 
 #include "DetectionParams.hxx"
 
@@ -67,6 +68,10 @@ public:
 	void annotateRect(const cv::Rect2f& rect, const cv::Scalar& color, int thickness);
 
 	void resetAnnotations();
+
+	QPixmap getAnnotatedPixmap();
+	QPixmap getOriginalPixmap();
+	QPixmap getProcessedPixmap();
 
 private:
 
@@ -148,6 +153,8 @@ private:
 	/// <returns> Integer status code. Negative if an error occured, non-negative if no error occured. </returns>
 	///
 	static int savePng(const cv::Mat& image, const std::string& filename, int compressionLevel = 3);
+
+	static QPixmap matToPixmap(const cv::Mat& mat);
 
 	SheetScan(const cv::Mat& sheetImage);
 	cv::Mat sheetImage_{};
