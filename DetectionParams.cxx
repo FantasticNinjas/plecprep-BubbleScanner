@@ -120,7 +120,7 @@ int DetectionParams::load(const std::string& filename, const std::string& filter
 
 	//Iterate through all of the filters in the configuration file to find the requested filter.
 	pugi::xml_node filterNode;
-	for(filterNode = filterParamsNode.child("filter"); filterParamsNode; filterNode = filterNode.next_sibling("filter")) {
+	for(filterNode = filterParamsNode.child("filter"); filterNode; filterNode = filterNode.next_sibling("filter")) {
 		//Get name attribute of current filter
 		pugi::xml_attribute nameAttr = filterNode.attribute("name");
 		if(!nameAttr) {
@@ -189,7 +189,47 @@ void DetectionParams::reset() {
 }
 
 int DetectionParams::getFilterList(const std::string& filename, std::vector<std::string>& filters) {
-	return 0;
+
+	int status = 0;
+
+	//Parse XML file
+
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(filename.c_str());
+	if(result) {
+		tlOss << "Successfully parsed XML file \"" << filename << "\"";
+		tlog.debug(__FILE__, __LINE__, tlOss);
+	} else {
+		status = -1;
+		tlOss << "Failed to parse XML file \"" << filename << "\". PugiXML error message: " << result.description();
+		tlog.critical(__FILE__, __LINE__, tlOss);
+	}
+
+	//Check that the XML file is formatted correctly.
+	pugi::xml_node filterParamsNode;
+	if(status >= 0) {
+		filterParamsNode = doc.first_child();
+		if(std::string(filterParamsNode.name()) != "filter-params") {
+			status = -1;
+			tlOss << "Failed to filter parameters. \"" << filename << "\" does not appear to be a filter configuration file. Root node type: \"" << filterParamsNode.name() << "\"";
+			tlog.critical(__FILE__, __LINE__, tlOss);
+		}
+	}
+
+	//Iterate through all of the filters in the configuration file to find the requested filter.
+	pugi::xml_node filterNode;
+	for(filterNode = filterParamsNode.child("filter"); filterNode; filterNode = filterNode.next_sibling("filter")) {
+		//Get name attribute of current filter
+		pugi::xml_attribute nameAttr = filterNode.attribute("name");
+		if(!nameAttr) {
+			tlOss << "Encountered a filter with no name attribute while parsing filter configuration file \"" << filename << "\"";
+			tlog.warning(__FILE__, __LINE__, tlOss);
+			continue;
+		}
+		filters.push_back(nameAttr.value());
+	}
+
+	return status;
 }
 
 const std::string& DetectionParams::getName() const {

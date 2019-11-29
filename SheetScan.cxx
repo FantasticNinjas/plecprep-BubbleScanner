@@ -83,6 +83,10 @@ const cv::Mat& SheetScan::getProcessedCache() {
 	return processedImageCache_;
 }
 
+bool SheetScan::empty() {
+	return !sheetImage_.data;
+}
+
 int SheetScan::setupAlgorithm(const DetectionParams& detectionParams) {
 	int status = 0;
 

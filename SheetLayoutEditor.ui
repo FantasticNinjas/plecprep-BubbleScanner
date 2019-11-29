@@ -57,6 +57,9 @@
           <enum>Qt::Vertical</enum>
          </property>
          <widget class="QTreeWidget" name="layoutTree">
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
           <column>
            <property name="text">
             <string notr="true">Sheet Layout Tree</string>
@@ -65,7 +68,7 @@
          </widget>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>3</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="BubbleToolsPage">
            <property name="geometry">
@@ -73,12 +76,85 @@
              <x>0</x>
              <y>0</y>
              <width>857</width>
-             <height>309</height>
+             <height>201</height>
             </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
            <attribute name="label">
             <string>Bubble Tools</string>
            </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <layout class="QFormLayout" name="formLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Bubble Text</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="bubbleTextEdit"/>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Bubble 'X' Coordinate</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="bubbleXEdit"/>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>Bubble 'Y' Coordinate</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="bubbleYEdit"/>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>Bubble Radius</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLineEdit" name="bubbleRadiusEdit"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton">
+              <property name="text">
+               <string>Add Bubble</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_2">
+              <property name="text">
+               <string>Delete Selected Bubbles</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_3">
+              <property name="text">
+               <string>Create Question from Selected</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
           <widget class="QWidget" name="QuestionToolsPage">
            <property name="geometry">
@@ -86,7 +162,7 @@
              <x>0</x>
              <y>0</y>
              <width>857</width>
-             <height>309</height>
+             <height>378</height>
             </rect>
            </property>
            <attribute name="label">
@@ -99,7 +175,7 @@
              <x>0</x>
              <y>0</y>
              <width>857</width>
-             <height>309</height>
+             <height>378</height>
             </rect>
            </property>
            <attribute name="label">
@@ -112,7 +188,7 @@
              <x>0</x>
              <y>0</y>
              <width>857</width>
-             <height>103</height>
+             <height>194</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -128,7 +204,7 @@
             <item>
              <widget class="QGroupBox" name="groupBox">
               <property name="title">
-               <string>Image Editor</string>
+               <string>Image Controls</string>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_2">
                <item>
@@ -144,6 +220,73 @@
                   <string>Zoom Out</string>
                  </property>
                 </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_2">
+              <property name="title">
+               <string>Automated Image Processing</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout">
+               <item row="0" column="0">
+                <widget class="QPushButton" name="alignBackgroundButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Align Background</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLabel" name="label">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Using Algorithm</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QComboBox" name="alignmentAlgoChooser"/>
+               </item>
+               <item row="1" column="0">
+                <widget class="QPushButton" name="recognizeCirclesButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Recognize Circles</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLabel" name="label_2">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Using Algorithm</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="2">
+                <widget class="QComboBox" name="circleAlgoPicker"/>
                </item>
               </layout>
              </widget>

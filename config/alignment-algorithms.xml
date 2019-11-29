@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <filter-params>
-  <filter name="Basic sheet alignment algorithm" type="THRESH_CONTOUR">
+  <filter name="Threshold-Contour Marks" type="THRESH_CONTOUR">
     <channel>1</channel>
     <preblur>5.0</preblur>
     <threshold>25</threshold>

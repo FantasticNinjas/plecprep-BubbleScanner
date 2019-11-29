@@ -297,6 +297,14 @@ const std::vector<struct SideLayout>& SheetLayout::getSideLayouts() const {
 	return sideLayouts_;
 }
 
+std::vector<struct SideLayout>& SheetLayout::getSideLayouts() {
+	return sideLayouts_;
+}
+
+int SheetLayout::numSideLayouts() const {
+	return sideLayouts_.size();
+}
+
 const std::string& SheetLayout::getTitle() const {
 	return title_;
 }

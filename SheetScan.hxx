@@ -29,6 +29,8 @@ public:
 	const cv::Mat& getAnnotated();
 	const cv::Mat& getProcessedCache();
 
+	bool empty();
+
 
 	///
 	/// <summary> Setup the image recognition algorithm used to detect wether bubbles are filled in. </summary>

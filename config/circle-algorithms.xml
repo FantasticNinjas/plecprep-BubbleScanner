@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <filter-params>
-  <filter name="Hough Transform Filter" type="THRESH_HCIRCLES">
+  <filter name="Hough Transform Circles" type="THRESH_HCIRCLES">
     <channel>2</channel>
     <preblur>5.0</preblur>
     <threshold>10</threshold>7

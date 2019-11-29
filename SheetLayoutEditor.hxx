@@ -3,9 +3,11 @@
 #include <map>
 
 #include <QDialog>
+#include <QTreeWidgetItem>
 
 #include "SheetLayout.hxx"
 #include "SheetScan.hxx"
+#include "UnassignedLayoutElements.hxx"
 
 namespace Ui { class SheetLayoutEditor; };
 
@@ -19,27 +21,30 @@ public:
 
 private slots:
 	void on_layoutChooser_activated(const QString &text);
+	
+	void on_layoutTree_itemSelectionChanged();
+
 	void on_zoomOutButton_clicked();
 	void on_zoomInButton_clicked();
+
+	void on_alignBackgroundButton_clicked(); 
+	void on_recognizeCirclesButton_clicked();
 
 private:
 	Ui::SheetLayoutEditor *ui;
 	//Map of layout titles to layout filenames. Used by openLayout to get the file from which to load a layout by its title.
-	std::map<std::string, std::string> layouts{};
+	std::map<std::string, std::string> layouts_{};
 
-	SheetLayout currentLayout{};
+	//The current sheet layout being modified
+	SheetLayout currentLayout_{};
 
-	SheetScan editorImage{};
-	float editorImageScale{1.0};
+	//Stores any layout elements that have been created using the GUI but have not yet been assigned a parent item.
+	UnassignedLayoutElements unassignedLayoutElements_{};
 
-	// The layout tree display keeps track of the type of each item (using values from this enum) in order to help trace it back to a specific entity in the SheetLayout object.
-	enum class TreeItemType : int {
-		UNKNOWN,
-		SIDE_LAYOUT,
-		QUESTION_GROUP_LAYOUT,
-		QUESTION_LAYOUT,
-		BUBBLE_LAYOUT
-	};
+	//The image displayed in the editor to graphically show the current layout
+	SheetScan editorImage_{};
+	//The zoom level of the editor image
+	float editorImageScale_{1.0};
 
 	///
 	/// <summary> Retreive the list of layouts from the filesystem and display them in the leyout picker combobox. </summary>
@@ -49,6 +54,11 @@ private:
 	/// <note> In addition to updating the GUI, this method also updates the internal map of layout titles to filenames used when opening a layout </note>
 	///
 	int reloadLayoutList();
+
+	///
+	/// <summary> Open the layout currently selected in the layout chooser. If "new sheet layout" is selected, create a new sheet layout and then open it. </summary>
+	///
+	void openSelectedLayout();
 
 	///
 	/// <summary> Open a layout in the editor by name. This method must be called after reloadLayoutList(). </summary>
@@ -85,4 +95,11 @@ private:
 	/// <param> The amount to scale the image. This is relative to the current scale (i.e. 1.2 makes the image 20% larger than it currently is). </param>
 	///
 	int zoomEditorImage(float amount = 1.0f);
+
+	int reloadAlgorithmList();
+
+	struct SideLayout* findSideLayout(QTreeWidgetItem *item);
+	struct QuestionGroupLayout* findQuestionGroupLayout(QTreeWidgetItem *item);
+	struct QuestionLayout* findQuestionLayout(QTreeWidgetItem* item);
+	struct BubbleLayout* findBubbleLayout(QTreeWidgetItem* item);
 };
