@@ -8,12 +8,12 @@
 
 #include "TextLogging.hxx"
 
-const std::string DEFAULT_COLOR = "\\e[0m";
-const std::string WHITE_COLOR = "\\e[1;37m";
-const std::string RED_COLOR = "\\e[1;31m";
-const std::string GREEN_COLOR = "\\e[1;32m";
-const std::string YELLOW_COLOR = "\\e[1;33m";
-const std::string MAGENTA_COLOR = "\\e[1;35m";
+const std::string DEFAULT_COLOR = "\033[0m";
+const std::string WHITE_COLOR = "\033[1;37m";
+const std::string RED_COLOR = "\033[1;31m";
+const std::string GREEN_COLOR = "\033[0;32m";
+const std::string YELLOW_COLOR = "\033[1;33m";
+const std::string MAGENTA_COLOR = "\033[1;35m";
 
 bool TextLogging::isDebugVerbosityEnabledDefault_ = false;
 bool TextLogging::isInfoVerbosityEnabledDefault_ = true;
