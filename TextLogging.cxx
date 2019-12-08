@@ -25,6 +25,8 @@ bool TextLogging::isColorTextEnabledDefault_ = true;
 std::string TextLogging::logDir_ = "./logs/";
 std::string TextLogging::logName_ = generateLogFileName();
 
+std::ofstream TextLogging::logFile_ = std::ofstream(logName_, std::ios_base::app);
+
 
 TextLogging::TextLogging() {
 	isDebugVerbosityEnabled_ = isDebugVerbosityEnabledDefault_;
@@ -82,69 +84,65 @@ void TextLogging::fatal(char * file, int line, std::ostringstream& tlOss) {
 
 void TextLogging::log(char * file, int line, std::ostringstream & tlOss, LogLevel level) {
 
-	//Open log file
-	std::ofstream logFile{};
-	logFile.open(getLogFileName(), std::ios_base::app);
-
 	//Set the text to the appropriate color (if color text is enabled)
 	if(isColorTextEnabled_) {
 		switch(level) {
 		case LogLevel::DEBUG:
-			logFile << GREEN_COLOR;
+			logFile_ << GREEN_COLOR;
 			break;
 		case LogLevel::INFO:
-			logFile << WHITE_COLOR;
+			logFile_ << WHITE_COLOR;
 			break;
 		case LogLevel::WARNING:
-			logFile << YELLOW_COLOR;
+			logFile_ << YELLOW_COLOR;
 			break;
 		case LogLevel::CRITICAL:
-			logFile << MAGENTA_COLOR;
+			logFile_ << MAGENTA_COLOR;
 			break;
 		case LogLevel::FATAL:
-			logFile << RED_COLOR;
+			logFile_ << RED_COLOR;
 			break;
 		default:
-			logFile << DEFAULT_COLOR;
+			logFile_ << DEFAULT_COLOR;
 		}
 	}
 
 	//Log the warning severity
 	switch(level) {
 	case LogLevel::DEBUG:
-		logFile << "DEBUG: ";
+		logFile_ << "DEBUG: ";
 		break;
 	case LogLevel::INFO:
-		logFile << "INFO: ";
+		logFile_ << "INFO: ";
 		break;
 	case LogLevel::WARNING:
-		logFile << "WARN: ";
+		logFile_ << "WARN: ";
 		break;
 	case LogLevel::CRITICAL:
-		logFile << "CRIT: ";
+		logFile_ << "CRIT: ";
 		break;
 	case LogLevel::FATAL:
-		logFile << "FATAL: ";
+		logFile_ << "FATAL: ";
 		break;
 	default:
-		logFile << ": ";
+		logFile_ << ": ";
 	}
 
 	//Log the file/line info
-	logFile << file << " #" << line << ": ";
+	logFile_ << file << " #" << line << ": ";
 
 	//Log the warning message
-	logFile << tlOss.str();
+	logFile_ << tlOss.str();
 
 	//Reset the text color
 	if(isColorTextEnabled_) {
-		logFile << DEFAULT_COLOR;
+		logFile_ << DEFAULT_COLOR;
 	}
 
-	logFile << std::endl;
+	logFile_ << std::endl;
 
 	//Write the new log entry to the log file.
-	logFile.close();
+	logFile_.flush();
 }
 
 std::string TextLogging::generateLogFileName() {

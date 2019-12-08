@@ -94,6 +94,7 @@ private:
 
 	static std::string logDir_;
 	static std::string logName_;
+	static std::ofstream logFile_;
 
 	bool isDebugVerbosityEnabled_;
 	bool isInfoVerbosityEnabled_;
