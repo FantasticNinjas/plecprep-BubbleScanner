@@ -60,20 +60,6 @@ int SheetLayout::load(const std::string & filename) {
 		}
 	}
 
-	//Load background image (used by sheet layout editor)
-
-	pugi::xml_attribute bgImageAttr;
-	if(status >= 0) {
-		bgImageAttr = sheetNode.attribute("bg-image");
-		if(bgImageAttr) {
-			backgroundImage_ = bgImageAttr.value();
-		} else {
-			backgroundImage_ = "";
-			tlOss << "Sheet layout loaded from \"" << filename << "\" does not specify a background image.";
-			tlog.warning(__FILE__, __LINE__, tlOss);
-		}
-	}
-
 	//Load sides of the sheet
 
 	if(!sheetNode.child("side")) {
@@ -89,6 +75,20 @@ int SheetLayout::load(const std::string & filename) {
 
 			//Set side number
 			currentSide.sideNumber_ = sideLayouts_.size();
+
+			//Set background image (used by sheet layout editor)
+
+			pugi::xml_attribute bgImageAttr;
+			if(status >= 0) {
+				bgImageAttr = sideNode.attribute("bg-image");
+				if(bgImageAttr) {
+					currentSide.bgImage_ = bgImageAttr.value();
+				} else {
+					currentSide.bgImage_ = "";
+					tlOss << "Sheet layout loaded from \"" << filename << "\" does not specify a background image.";
+					tlog.warning(__FILE__, __LINE__, tlOss);
+				}
+			}
 
 			//Add question groups to side layout
 			for(pugi::xml_node groupNode = sideNode.child("group"); groupNode; groupNode = groupNode.next_sibling("group")) {
@@ -221,11 +221,11 @@ int SheetLayout::save(const std::string &filename) const {
 	//Add sheet node
 	pugi::xml_node sheetNode = doc.append_child("sheet");
 	sheetNode.append_attribute("title") = title_.c_str();
-	sheetNode.append_attribute("bg-image") = backgroundImage_.c_str();
 	
 	//Add nodes for each side of the sheet layout
 	for(struct SideLayout side : sideLayouts_) {
 		pugi::xml_node sideNode = sheetNode.append_child("side");
+		sideNode.append_attribute("bg-image") = side.bgImage_.c_str();
 
 		//Add nodes for each question group
 		for(struct QuestionGroupLayout group : side.questionGroups_) {
@@ -307,10 +307,6 @@ int SheetLayout::numSideLayouts() const {
 
 const std::string& SheetLayout::getTitle() const {
 	return title_;
-}
-
-const std::string& SheetLayout::getBackgroundImageFilename() const {
-	return backgroundImage_;
 }
 
 std::ostream& operator<<(std::ostream& os, const SheetLayout& sheetLayout) {

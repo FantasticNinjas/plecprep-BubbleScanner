@@ -1,5 +1,6 @@
 
 #include <sstream>
+#include <QDebug>
 
 #include "SheetScan.hxx"
 #include "TextLogging.hxx"
@@ -884,10 +885,12 @@ float SheetScan::getFilledFraction(const cv::Mat & image, const cv::RotatedRect 
 QPixmap SheetScan::matToPixmap(const cv::Mat& mat) {
 	//Convert the image from BGR or gray (used by OpenCV) to RGB (used by QT)
 	cv::Mat rgbMat;
-	if(mat.channels() == 3) {
-		cv::cvtColor(mat, rgbMat, CV_BGR2RGB);
-	} else {
-		cv::cvtColor(mat, rgbMat, CV_GRAY2RGB);
+	if(mat.data) {
+		if(mat.channels() == 3) {
+			cv::cvtColor(mat, rgbMat, CV_BGR2RGB);
+		} else {
+			cv::cvtColor(mat, rgbMat, CV_GRAY2RGB);
+		}
 	}
 	
 	if(rgbMat.data) {

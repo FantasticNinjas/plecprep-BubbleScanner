@@ -26,6 +26,17 @@ SheetLayoutEditor::SheetLayoutEditor(QWidget *parent) : QDialog(parent) {
 	//Make the image viewer background dark.
 	ui->imageScrollArea->setBackgroundRole(QPalette::Dark);
 	//Populate lists of available image processing algorithms (under Sheet Layout Tools)
+
+	//Set property editors (such as bubble x position) to only accept numbers
+	ui->bubbleRadiusEdit->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
+	ui->bubbleXEdit->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
+	ui->bubbleYEdit->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
+
+	ui->boxSelectLeftBound->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
+	ui->boxSelectRightBound->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
+	ui->boxSelectTopBound->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
+	ui->boxSelectBottomBound->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
+
 	reloadAlgorithmList();
 	//Populate the sheet layout selector
 	if(reloadLayoutList() >= 0) {
@@ -49,6 +60,7 @@ void SheetLayoutEditor::on_layoutTree_itemSelectionChanged() {
 				qDebug() << "Invalid side";
 			} else {
 				qDebug() << "Side number " << layout->sideNumber_;
+				openEditorImage(FilenameOracle::getLayoutDirectoryFilename() + FilenameOracle::getImageDirectory() + layout->bgImage_);
 			}
 		} else if(treeItem->type() == (int)TreeItemType::QUESTION_GROUP_LAYOUT) {
 			struct QuestionGroupLayout* layout = findQuestionGroupLayout(treeItem);
@@ -70,9 +82,13 @@ void SheetLayoutEditor::on_layoutTree_itemSelectionChanged() {
 				qDebug() << "Invalid bubble";
 			} else {
 				qDebug() << "Bubble \"" << layout->answer_.c_str() << "\"";
+				setBubbleFocused(*layout);
 			}
 		}
 	}
+
+	//Update the editor image to reflect the change in selection
+	reloadEditorImage();
 }
 
 void SheetLayoutEditor::on_zoomOutButton_clicked() {
@@ -95,7 +111,7 @@ void SheetLayoutEditor::on_alignBackgroundButton_clicked() {
 
 	//Get the name of the current image alignment algorithm from the algorithm chooser
 	std::string algorithmName = ui->alignmentAlgoChooser->currentText().toStdString();
-	if(algorithmName.empty()) {
+	if(status == 0 && algorithmName.empty()) {
 		tlOss << "Not aligning background image because no alignment algorithm is selected.";
 		qlog.debug(__FILE__, __LINE__, this, tlOss);
 		status = 1;
@@ -134,15 +150,72 @@ void SheetLayoutEditor::on_alignBackgroundButton_clicked() {
 }
 
 void SheetLayoutEditor::on_recognizeCirclesButton_clicked() {
-	static int groupNumber;
-	QuestionGroupLayout groupLayout;
+	int status = 0;
 
-	std::ostringstream groupName;
-	groupName << "Question Group " << ++groupNumber;
+	//Check that the sheet image exists
+	if(editorImage_.empty()) {
+		tlOss << "Not running circle recognition algorithm because editor image is not loaded.";
+		qlog.debug(__FILE__, __LINE__, this, tlOss);
+		status = 1;
+	}
 
-	groupLayout.name_ = groupName.str();
-	unassignedLayoutElements_.add(groupLayout);
-	displayLayoutTree();
+	//Get the circle recognition algorithm to use from the algorithm chooser
+	std::string algorithmName = ui->circleAlgoPicker->currentText().toStdString();
+	if(status == 0 && algorithmName.empty()) {
+		tlOss << "Not running circle recognition algorithm because no algorithm is selected.";
+		qlog.debug(__FILE__, __LINE__, this, tlOss);
+		status = 1;
+	}
+
+	//Load the requested algorithm configuration
+	DetectionParams algorithmParams;
+	if(status == 0) {
+		if(algorithmParams.load(FilenameOracle::getCircleAlgorithmsFilename(), algorithmName) < 0) {
+			status = -1;
+			tlOss << "Failed to load circle recognition algorithm \"" << algorithmName << "\"";
+			qlog.critical(__FILE__, __LINE__, this, tlOss);
+		}
+	}
+
+	//Apply the initialization step of the algorithm 
+	if(status == 0) {
+		if(editorImage_.setupAlgorithm(algorithmParams) < 0) {
+			status = -1;
+			tlOss << "Failed to initialize circle recognition algorithm \"" << algorithmName << "\"";
+			qlog.critical(__FILE__, __LINE__, this, tlOss);
+		}
+	}
+
+	std::vector<cv::Vec3f> circles;
+	if(status == 0) {
+		if(editorImage_.findCircles(circles, algorithmParams) < 0) {
+			status = -1;
+			tlOss << "Circle recognition algorithm reported an error.";
+			qlog.critical(__FILE__, __LINE__, this, tlOss);
+		}
+	}
+
+	if(status == 0) {
+		for(const auto& circle : circles) {
+			BubbleLayout bubble;
+			bubble.location_ = circle;
+			unassignedLayoutElements_.add(bubble);
+		}
+		displayLayoutTree();
+		reloadEditorImage();
+	}
+	
+}
+
+void SheetLayoutEditor::on_boxSelectActivate_clicked() {
+	//Create a cv::Rect2f matching the selection bounds specified in the GUI
+	float leftBound = std::stof(ui->boxSelectLeftBound->text().toStdString());
+	float rightBound = std::stof(ui->boxSelectRightBound->text().toStdString());
+	float topBound = std::stof(ui->boxSelectTopBound->text().toStdString());
+	float bottomBound = std::stof(ui->boxSelectBottomBound->text().toStdString());
+	cv::Rect2f selectionBox(cv::Point2f(leftBound, topBound), cv::Point2f(rightBound, bottomBound));
+
+	boxSelection(selectionBox);
 }
 
 int SheetLayoutEditor::reloadLayoutList() {
@@ -214,12 +287,6 @@ int SheetLayoutEditor::openLayout(const std::string & layoutTitle) {
 		status = displayLayoutTree();
 	}
 
-
-	//Load the editor background image specified in the layout file
-	if(status >= 0) {
-		status = editorImage_.load(FilenameOracle::getLayoutDirectoryFilename() + FilenameOracle::getImageDirectory() + currentLayout_.getBackgroundImageFilename());
-	}
-
 	//Display the editor background image.
 	if(status >= 0) {
 		status = reloadEditorImage();
@@ -265,10 +332,6 @@ int SheetLayoutEditor::openEditorImage(const std::string& filename) {
 		qlog.critical(__FILE__, __LINE__, this, tlOss);
 	}
 
-	if(status >= 0) {
-		zoomEditorImage(1);
-	}
-
 	//Display the image in the editor
 	if(status >= 0 && reloadEditorImage() < 0) {
 		status = -1;
@@ -280,8 +343,92 @@ int SheetLayoutEditor::openEditorImage(const std::string& filename) {
 	return status;
 }
 
+void SheetLayoutEditor::annotateEditorImage() {
+	int status = 0;
+	//If the editor image is empty, there is nothing to annotate, so just return
+	if(editorImage_.empty()) {
+		tlOss << "Not annotating sheet layout editor image, editorImage is not loaded.";
+		qlog.debug(__FILE__, __LINE__, this, tlOss);
+		status = 1;
+	}
+
+	if(status <= 0) {
+		//Remove any existing annotations in the editor image
+		editorImage_.resetAnnotations();
+
+		//Draw each visible item in the layout tree
+		for(QTreeWidgetItem* item = ui->layoutTree->topLevelItem(0); item != nullptr; item = ui->layoutTree->itemBelow(item)) {
+			//Set the color to draw the layout element based on whether or not its item is selected.
+			cv::Scalar color(255, 0, 0);
+			if(item->isSelected()) {
+				color = cv::Scalar(0, 0, 255);
+			}
+
+			//Draw the layout element
+
+			if(item->type() == (int)TreeItemType::BUBBLE_LAYOUT) {
+				BubbleLayout* bubble = findBubbleLayout(item);
+				if(bubble != nullptr) {
+					editorImage_.annotateCircle(bubble->location_, color, 2);
+				}
+			}
+		}
+	}
+}
+
+void SheetLayoutEditor::boxSelection(cv::Rect2f & selectionBox) {
+	//Note: This function works by iterating over the unassigned layout elements in the layout tree display, not in the UnassignedLayoutElements instance itself. This is because there is currently a method for
+	//going from an item in the layout tree display to its corrisponding layout element, but not the other way around. This is important because which elements are selected is stored in the layout tree display,
+	//while the positions of elements (and therefore whether they should be selected) are stored in the layout elements themselves, so this method needs both.
+
+	int status = 0;
+
+	//Find the unassigned elemts item in the layout tree
+	QTreeWidgetItem* unassignedElementsItem = nullptr;
+	if(status >= 0) {
+		for(int i = 0; i < ui->layoutTree->topLevelItemCount(); i++) {
+			QTreeWidgetItem* currentItem = ui->layoutTree->topLevelItem(i);
+			if(currentItem->type() == (int)TreeItemType::UNASSIGNED_ITEM_LIST) {
+				unassignedElementsItem = currentItem;
+				break;
+			}
+		}
+
+		if(unassignedElementsItem == nullptr) {
+			status = -1;
+			tlOss << "Failed to find unassigned layout elements tree item";
+			qlog.critical(__FILE__, __LINE__, this, tlOss);
+		}
+	
+
+	if(status >= 0) {
+		//Iterate over all bubble layouts in the unassigned layout elements list
+		for(int i = 0; i < unassignedElementsItem->childCount(); i++) {
+			QTreeWidgetItem* item = unassignedElementsItem->child(i);
+			if(item->type() == (int)TreeItemType::BUBBLE_LAYOUT) {
+				//Find the bubble layout corrisponding to the current tree item
+				BubbleLayout* bubble = findBubbleLayout(item);
+				if(bubble == nullptr) {
+					tlOss << "Failed to resolve layout tree item \"" << item->text(0).toStdString() << "\" as a bubble layout element";
+					qlog.warning(__FILE__, __LINE__, this, tlOss);
+					continue;
+				}
+
+				//If the bubble's bounding box overlaps with the selction box, select it
+				cv::Rect2f boundingBox = bubble->boundingBox();
+				if((selectionBox & bubble->boundingBox()).area() > 0) {
+					item->setSelected(true);
+				}
+			}
+		}
+	}
+
+}
+
 int SheetLayoutEditor::reloadEditorImage() {
 	int status = 0;
+
+	annotateEditorImage();
 
 	//Get the pixmap to display from the SheetScan.
 	QPixmap editorPixmap = editorImage_.getAnnotatedPixmap();
@@ -370,6 +517,41 @@ int SheetLayoutEditor::reloadAlgorithmList() {
 	}
 
 	return status;
+}
+
+void SheetLayoutEditor::setBubbleFocused(const BubbleLayout & bubble) {
+	//Set bubble text
+	ui->bubbleTextEdit->setText(QString::fromStdString(bubble.answer_));
+	//Set bubble x coordinate
+	std::ostringstream xCoordStream;
+	xCoordStream << bubble.location_[0];
+	ui->bubbleXEdit->setText(QString::fromStdString(xCoordStream.str()));
+	//Set bubble y coordinate
+	std::ostringstream yCoordStream;
+	yCoordStream << bubble.location_[1];
+	ui->bubbleYEdit->setText(QString::fromStdString(yCoordStream.str()));
+	//Set bubble radius
+	std::ostringstream radiusStream;
+	radiusStream << bubble.location_[2];
+	ui->bubbleRadiusEdit->setText(QString::fromStdString(radiusStream.str()));
+
+	//Set box selection bounds to boundingbox
+	cv::Rect2f boundingBox = bubble.boundingBox();
+	std::ostringstream leftBoundStream;
+	leftBoundStream << boundingBox.x;
+	ui->boxSelectLeftBound->setText(QString::fromStdString(leftBoundStream.str()));
+
+	std::ostringstream rightBoundStream;
+	rightBoundStream << boundingBox.x + boundingBox.width;
+	ui->boxSelectRightBound->setText(QString::fromStdString(rightBoundStream.str()));
+
+	std::ostringstream topBoundStream;
+	topBoundStream << boundingBox.y;
+	ui->boxSelectTopBound->setText(QString::fromStdString(topBoundStream.str()));
+
+	std::ostringstream bottomBoundStream;
+	bottomBoundStream << boundingBox.y + boundingBox.height;
+	ui->boxSelectBottomBound->setText(QString::fromStdString(bottomBoundStream.str()));
 }
 
 SideLayout* SheetLayoutEditor::findSideLayout(QTreeWidgetItem*item) {

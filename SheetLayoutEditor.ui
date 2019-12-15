@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>953</width>
-    <height>866</height>
+    <width>962</width>
+    <height>911</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@
          <x>0</x>
          <y>0</y>
          <width>69</width>
-         <height>827</height>
+         <height>872</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -75,8 +75,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>857</width>
-             <height>201</height>
+             <width>866</width>
+             <height>363</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -154,6 +154,62 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_3">
+              <property name="title">
+               <string>Box Select Unassigned</string>
+              </property>
+              <layout class="QFormLayout" name="formLayout_2">
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>Left Boundary</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="boxSelectLeftBound"/>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_8">
+                 <property name="text">
+                  <string>Right Boundary</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="boxSelectRightBound"/>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_9">
+                 <property name="text">
+                  <string>Top Boundary</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLineEdit" name="boxSelectTopBound"/>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="label_10">
+                 <property name="text">
+                  <string>Bottom Boundary</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QLineEdit" name="boxSelectBottomBound"/>
+               </item>
+               <item row="4" column="1">
+                <widget class="QPushButton" name="boxSelectActivate">
+                 <property name="text">
+                  <string>Select</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
            </layout>
           </widget>
           <widget class="QWidget" name="QuestionToolsPage">
@@ -161,8 +217,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>857</width>
-             <height>378</height>
+             <width>866</width>
+             <height>410</height>
             </rect>
            </property>
            <attribute name="label">
@@ -174,8 +230,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>857</width>
-             <height>378</height>
+             <width>866</width>
+             <height>410</height>
             </rect>
            </property>
            <attribute name="label">
@@ -187,7 +243,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>857</width>
+             <width>866</width>
              <height>194</height>
             </rect>
            </property>

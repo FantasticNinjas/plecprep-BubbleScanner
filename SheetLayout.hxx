@@ -20,8 +20,8 @@
 struct BubbleLayout {
 	cv::Rect2f boundingBox() const;
 
-	std::string answer_;
-	cv::Vec3f location_;
+	std::string answer_{};
+	cv::Vec3f location_{};
 };
 
 ///
@@ -128,7 +128,6 @@ public:
 	std::vector<struct SideLayout>& getSideLayouts();
 	int numSideLayouts() const;
 	const std::string& getTitle() const;
-	const std::string& getBackgroundImageFilename() const;
 
 	///
 	/// <summary> Get the title of a sheet layout from its file path. This function may be desirable because it only parses a small portion of the sheet layout and will therefore be more efficient. </summary>
@@ -141,7 +140,6 @@ public:
 
 private:
 	std::string title_;
-	std::string backgroundImage_;
 	std::vector<struct SideLayout> sideLayouts_;
 };
 
@@ -156,6 +154,7 @@ struct SideLayout {
 	}
 
 	size_t sideNumber_;
+	std::string bgImage_;
 	std::vector<struct QuestionGroupLayout> questionGroups_;
 };
 

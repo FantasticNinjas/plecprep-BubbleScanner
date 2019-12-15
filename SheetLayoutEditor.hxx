@@ -30,10 +30,13 @@ private slots:
 	void on_alignBackgroundButton_clicked(); 
 	void on_recognizeCirclesButton_clicked();
 
+	void on_boxSelectActivate_clicked();
+
 private:
 	Ui::SheetLayoutEditor *ui;
 	//Map of layout titles to layout filenames. Used by openLayout to get the file from which to load a layout by its title.
 	std::map<std::string, std::string> layouts_{};
+
 
 	//The current sheet layout being modified
 	SheetLayout currentLayout_{};
@@ -79,6 +82,10 @@ private:
 	///
 	int openEditorImage(const std::string& filename);
 
+	void annotateEditorImage();
+
+	void boxSelection(cv::Rect2f& selectionBox);
+
 	///
 	/// <summary> Reloads the editor background image from the SheetScan in memory. This will make the GUI reflect any changes / image processing that have been applied to the SheetScan. </summary>
 	///
@@ -97,6 +104,8 @@ private:
 	int zoomEditorImage(float amount = 1.0f);
 
 	int reloadAlgorithmList();
+
+	void setBubbleFocused(const struct BubbleLayout& bubble);
 
 	struct SideLayout* findSideLayout(QTreeWidgetItem *item);
 	struct QuestionGroupLayout* findQuestionGroupLayout(QTreeWidgetItem *item);
