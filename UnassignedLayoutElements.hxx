@@ -42,6 +42,12 @@ public:
 	///
 	void add(const struct BubbleLayout& bubbleLayout);
 
+	void remove(const std::vector<BubbleLayout*>& bubbles);
+
+	void remove(const std::vector<QuestionLayout*>& questions);
+
+	void remove(const std::vector<QuestionGroupLayout*> questionGroups);
+
 
 
 	///

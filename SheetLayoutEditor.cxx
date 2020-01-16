@@ -53,39 +53,31 @@ void SheetLayoutEditor::on_layoutChooser_activated(const QString &text) {
 }
 
 void SheetLayoutEditor::on_layoutTree_itemSelectionChanged() {
+	//Reset focused items;
+	focusedSide = nullptr;
+	focusedGroup = nullptr;
+	focusedQuestion = nullptr;
+	focusedBubble = nullptr;
+
+	//Search through the currently selected items and select one of each type to be the focus
 	for(const auto& treeItem : ui->layoutTree->selectedItems()) {
-		if(treeItem->type() == (int)TreeItemType::SIDE_LAYOUT) {
-			struct SideLayout* layout = findSideLayout(treeItem);
-			if(layout == nullptr) {
-				qDebug() << "Invalid side";
-			} else {
-				qDebug() << "Side number " << layout->sideNumber_;
-				openEditorImage(FilenameOracle::getLayoutDirectoryFilename() + FilenameOracle::getImageDirectory() + layout->bgImage_);
-			}
-		} else if(treeItem->type() == (int)TreeItemType::QUESTION_GROUP_LAYOUT) {
-			struct QuestionGroupLayout* layout = findQuestionGroupLayout(treeItem);
-			if(layout == nullptr) {
-				qDebug() << "Invalid question group";
-			} else {
-				qDebug() << "Question Group \"" << layout->name_.c_str() << "\"";
-			}
-		} else if(treeItem->type() == (int)TreeItemType::QUESTION_LAYOUT) {
-			struct QuestionLayout* layout = findQuestionLayout(treeItem);
-			if(layout == nullptr) {
-				qDebug() << "Invalid question";
-			} else {
-				qDebug() << "Question \"" << layout->questionNumber_ << "\"";
-			}
-		} else if(treeItem->type() == (int)TreeItemType::BUBBLE_LAYOUT) {
-			struct BubbleLayout* layout = findBubbleLayout(treeItem);
-			if(layout == nullptr) {
-				qDebug() << "Invalid bubble";
-			} else {
-				qDebug() << "Bubble \"" << layout->answer_.c_str() << "\"";
-				setBubbleFocused(*layout);
-			}
+		if(treeItem->type() == (int)TreeItemType::SIDE_LAYOUT && findSideLayout(treeItem) != nullptr) {
+			focusedSide = treeItem;
+		} else if(treeItem->type() == (int)TreeItemType::QUESTION_GROUP_LAYOUT && findQuestionGroupLayout(treeItem) != nullptr) {
+			focusedGroup = treeItem;
+		} else if(treeItem->type() == (int)TreeItemType::QUESTION_LAYOUT && findQuestionLayout(treeItem) != nullptr) {
+			focusedQuestion = treeItem;
+		} else if(treeItem->type() == (int)TreeItemType::BUBBLE_LAYOUT && findBubbleLayout(treeItem) != nullptr) {
+			focusedBubble = treeItem;
 		}
 	}
+
+	//Open editor image
+	if(focusedSide != nullptr) {
+		openEditorImage(FilenameOracle::getLayoutDirectoryFilename() + FilenameOracle::getImageDirectory() + findSideLayout(focusedSide)->bgImage_);
+	}
+	//Update toolbox fields
+	updateBubbleEditor();
 
 	//Update the editor image to reflect the change in selection
 	reloadEditorImage();
@@ -207,6 +199,36 @@ void SheetLayoutEditor::on_recognizeCirclesButton_clicked() {
 	
 }
 
+void SheetLayoutEditor::on_bubbleTextEdit_editingFinished() {
+	applyBubbleEditor();
+}
+
+void SheetLayoutEditor::on_bubbleXEdit_editingFinished() {
+	applyBubbleEditor();
+}
+
+void SheetLayoutEditor::on_bubbleYEdit_editingFinished() {
+	applyBubbleEditor();
+}
+
+void SheetLayoutEditor::on_bubbleRadiusEdit_editingFinished() {
+	applyBubbleEditor();
+}
+
+void SheetLayoutEditor::on_addBubble_clicked() {
+	unassignedLayoutElements_.add(BubbleLayout());
+	displayLayoutTree();
+	reloadEditorImage();
+}
+
+void SheetLayoutEditor::on_deleteBubbles_clicked() {
+
+	//Search through the currently selected items for bubbles to delete
+	for(const auto& treeItem : ui->layoutTree->selectedItems()) {
+
+	}
+}
+
 void SheetLayoutEditor::on_boxSelectActivate_clicked() {
 	//Create a cv::Rect2f matching the selection bounds specified in the GUI
 	float leftBound = std::stof(ui->boxSelectLeftBound->text().toStdString());
@@ -215,6 +237,7 @@ void SheetLayoutEditor::on_boxSelectActivate_clicked() {
 	float bottomBound = std::stof(ui->boxSelectBottomBound->text().toStdString());
 	cv::Rect2f selectionBox(cv::Point2f(leftBound, topBound), cv::Point2f(rightBound, bottomBound));
 
+	//Select all bubbles in the box
 	boxSelection(selectionBox);
 }
 
@@ -399,7 +422,8 @@ void SheetLayoutEditor::boxSelection(cv::Rect2f & selectionBox) {
 			tlOss << "Failed to find unassigned layout elements tree item";
 			qlog.critical(__FILE__, __LINE__, this, tlOss);
 		}
-	
+
+	}
 
 	if(status >= 0) {
 		//Iterate over all bubble layouts in the unassigned layout elements list
@@ -519,39 +543,128 @@ int SheetLayoutEditor::reloadAlgorithmList() {
 	return status;
 }
 
-void SheetLayoutEditor::setBubbleFocused(const BubbleLayout & bubble) {
-	//Set bubble text
-	ui->bubbleTextEdit->setText(QString::fromStdString(bubble.answer_));
-	//Set bubble x coordinate
-	std::ostringstream xCoordStream;
-	xCoordStream << bubble.location_[0];
-	ui->bubbleXEdit->setText(QString::fromStdString(xCoordStream.str()));
-	//Set bubble y coordinate
-	std::ostringstream yCoordStream;
-	yCoordStream << bubble.location_[1];
-	ui->bubbleYEdit->setText(QString::fromStdString(yCoordStream.str()));
-	//Set bubble radius
-	std::ostringstream radiusStream;
-	radiusStream << bubble.location_[2];
-	ui->bubbleRadiusEdit->setText(QString::fromStdString(radiusStream.str()));
+void SheetLayoutEditor::updateBubbleEditor() {
+	int status = 0;
 
-	//Set box selection bounds to boundingbox
-	cv::Rect2f boundingBox = bubble.boundingBox();
-	std::ostringstream leftBoundStream;
-	leftBoundStream << boundingBox.x;
-	ui->boxSelectLeftBound->setText(QString::fromStdString(leftBoundStream.str()));
+	//Find the currently focused bubble
+	BubbleLayout* bubble = nullptr;
+	if(focusedBubble != nullptr) {
+		bubble = findBubbleLayout(focusedBubble);
+	}
 
-	std::ostringstream rightBoundStream;
-	rightBoundStream << boundingBox.x + boundingBox.width;
-	ui->boxSelectRightBound->setText(QString::fromStdString(rightBoundStream.str()));
+	if(bubble == nullptr) {
+		tlOss << "Not updating bubble editor because no bubble is selected.";
+		qlog.debug(__FILE__, __LINE__, this, tlOss);
+		resetbubbleEditor();
+		status = 1;
+	}
 
-	std::ostringstream topBoundStream;
-	topBoundStream << boundingBox.y;
-	ui->boxSelectTopBound->setText(QString::fromStdString(topBoundStream.str()));
+	if(status == 0) {
+		//Set bubble text
+		ui->bubbleTextEdit->setText(QString::fromStdString(bubble->answer_));
+		//Set bubble x coordinate
+		std::ostringstream xCoordStream;
+		xCoordStream << bubble->location_[0];
+		ui->bubbleXEdit->setText(QString::fromStdString(xCoordStream.str()));
+		//Set bubble y coordinate
+		std::ostringstream yCoordStream;
+		yCoordStream << bubble->location_[1];
+		ui->bubbleYEdit->setText(QString::fromStdString(yCoordStream.str()));
+		//Set bubble radius
+		std::ostringstream radiusStream;
+		radiusStream << bubble->location_[2];
+		ui->bubbleRadiusEdit->setText(QString::fromStdString(radiusStream.str()));
 
-	std::ostringstream bottomBoundStream;
-	bottomBoundStream << boundingBox.y + boundingBox.height;
-	ui->boxSelectBottomBound->setText(QString::fromStdString(bottomBoundStream.str()));
+		//Set box selection bounds to boundingbox
+		cv::Rect2f boundingBox = bubble->boundingBox();
+		std::ostringstream leftBoundStream;
+		leftBoundStream << boundingBox.x;
+		ui->boxSelectLeftBound->setText(QString::fromStdString(leftBoundStream.str()));
+
+		std::ostringstream rightBoundStream;
+		rightBoundStream << boundingBox.x + boundingBox.width;
+		ui->boxSelectRightBound->setText(QString::fromStdString(rightBoundStream.str()));
+
+		std::ostringstream topBoundStream;
+		topBoundStream << boundingBox.y;
+		ui->boxSelectTopBound->setText(QString::fromStdString(topBoundStream.str()));
+
+		std::ostringstream bottomBoundStream;
+		bottomBoundStream << boundingBox.y + boundingBox.height;
+		ui->boxSelectBottomBound->setText(QString::fromStdString(bottomBoundStream.str()));
+	}
+}
+
+void SheetLayoutEditor::applyBubbleEditor() {
+	int status = 0;
+
+	//Find the currently focused bubble
+	BubbleLayout* bubble = nullptr;
+	if(focusedBubble != nullptr) {
+		bubble = findBubbleLayout(focusedBubble);
+	}
+
+	if(bubble == nullptr) {
+		tlOss << "Not updating bubble editor because no bubble is selected.";
+		qlog.debug(__FILE__, __LINE__, this, tlOss);
+		resetbubbleEditor();
+		status = 1;
+	}
+
+	if(status == 0) {
+		//Set fields on focused bubble
+		bubble->answer_ = ui->bubbleTextEdit->text().toStdString();
+		bubble->location_[0] = ui->bubbleXEdit->text().toFloat();
+		bubble->location_[1] = ui->bubbleYEdit->text().toFloat();
+		bubble->location_[2] = ui->bubbleRadiusEdit->text().toFloat();
+
+		displayLayoutTree();
+		reloadEditorImage();
+	}
+}
+
+void SheetLayoutEditor::resetbubbleEditor() {
+	ui->bubbleTextEdit->setText("");
+	ui->bubbleXEdit->setText("");
+	ui->bubbleYEdit->setText("");
+	ui->bubbleRadiusEdit->setText("");
+}
+
+int SheetLayoutEditor::removeLayoutElement(QTreeWidgetItem * item) {
+	int status = 0;
+	if(item == nullptr) {
+		status = -1;
+		tlOss << "Attempted to delete null tree item";
+		qlog.critical(__FILE__, __LINE__, this, tlOss);
+	}
+}
+
+bool SheetLayoutEditor::isAssigned(QTreeWidgetItem * item) {
+	int status = 0;
+	if(item == nullptr) {
+		status = -1;
+		tlOss << "Encountered null tree item.";
+		qlog.critical(__FILE__, __LINE__, this, tlOss);
+	}
+
+	QTreeWidgetItem* parent = nullptr;
+	if(status >= 0) {
+		parent = item->parent();
+		if(parent == nullptr) {
+			status = -1;
+			tlOss << "Encountered tree item with null parent.";
+			qlog.critical(__FILE__, __LINE__, this, tlOss);
+		}
+	}
+
+	bool isAssigned = false;
+	if(status >= 0) {
+		if(parent->type() != (int)TreeItemType::UNASSIGNED_ITEM_LIST) {
+			isAssigned = true;
+		}
+	}
+
+	return isAssigned;
 }
 
 SideLayout* SheetLayoutEditor::findSideLayout(QTreeWidgetItem*item) {

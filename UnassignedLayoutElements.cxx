@@ -20,10 +20,40 @@ void UnassignedLayoutElements::add(const QuestionGroupLayout & questionGroupLayo
 
 void UnassignedLayoutElements::add(const QuestionLayout & questionLayout) {
 	questionLayouts_.push_back(questionLayout);
+	questionLayouts_.back().questionNumber_ = numQuestions() - 1; 
 }
 
 void UnassignedLayoutElements::add(const BubbleLayout & bubbleLayout) {
 	bubbleLayouts_.push_back(bubbleLayout);
+}
+
+void UnassignedLayoutElements::remove(const std::vector<BubbleLayout*>& bubbles) {
+	//Careful when removing multiple elements from an std::vector. Whenever you add or remove an element, there is a chance that the whole vector will be reallocated and
+	//any pointers that used to lead inside the vector will become invalid. In light of that, that danger, this function works by finding all of the indices of the elements
+	//then removing them by index in reverse order
+
+	//Find the indices of the elements to be removed. Note that this list will be sorted from least to greatest
+	std::vector<int> indices{};
+	for(int i = 0; i < numBubbles(); i++) {
+		//If the list of bubbles to remove contains the BubbleLayout at index i
+		if(std::find(bubbles.begin(), bubbles.end(), &bubbleLayouts_[i]) != bubbles.end()) {
+			//Add i to the list of bubbles
+			indices.push_back(i);
+		}
+	}
+
+	//Iterate through the list of indices in reverse order and remove them.
+	for(int j = indices.size() - 1; j >= 0; j--) {
+		bubbleLayouts_.erase(bubbleLayouts_.begin + indices[j]);
+	}
+}
+
+void UnassignedLayoutElements::remove(const std::vector<QuestionLayout*>& questions) {
+
+}
+
+void UnassignedLayoutElements::remove(const std::vector<QuestionGroupLayout*> questionGroups) {
+
 }
 
 int UnassignedLayoutElements::numQuestionGroups() const {
