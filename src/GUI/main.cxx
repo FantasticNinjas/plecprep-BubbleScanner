@@ -4,7 +4,6 @@
 #include "SheetScan.hxx"
 #include "SheetLayout.hxx"
 #include <QtWidgets/QApplication>
-#include "Reader.hxx"
 #include <vector>
 #include <stdio.h>
 #include <qdebug.h>

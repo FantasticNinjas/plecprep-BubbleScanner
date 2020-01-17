@@ -44,7 +44,7 @@ void UnassignedLayoutElements::remove(const std::vector<BubbleLayout*>& bubbles)
 
 	//Iterate through the list of indices in reverse order and remove them.
 	for(int j = indices.size() - 1; j >= 0; j--) {
-		bubbleLayouts_.erase(bubbleLayouts_.begin + indices[j]);
+		bubbleLayouts_.erase(bubbleLayouts_.begin() + indices[j]);
 	}
 }
 

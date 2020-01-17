@@ -637,6 +637,7 @@ int SheetLayoutEditor::removeLayoutElement(QTreeWidgetItem * item) {
 		tlOss << "Attempted to delete null tree item";
 		qlog.critical(__FILE__, __LINE__, this, tlOss);
 	}
+	return 0;
 }
 
 bool SheetLayoutEditor::isAssigned(QTreeWidgetItem * item) {
