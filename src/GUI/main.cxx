@@ -2,7 +2,6 @@
 #include "DetectionParams.hxx"
 #include "TextLogging.hxx"
 #include "SheetScan.hxx"
-#include "SheetLayout.hxx"
 #include <QtWidgets/QApplication>
 #include <vector>
 #include <stdio.h>

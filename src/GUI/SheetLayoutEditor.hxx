@@ -5,14 +5,22 @@
 #include <QDialog>
 #include <QTreeWidgetItem>
 
-#include "SheetLayout.hxx"
+#include "ui_SheetLayoutEditor.h"
+
+#include "ScanSheetLayout.hxx"
 #include "SheetScan.hxx"
-#include "UnassignedLayoutElements.hxx"
+#include "LayoutElementContainer.hxx"
 
-namespace Ui { class SheetLayoutEditor; };
+enum class TreeItemType : int {
+	UNKNOWN = QTreeWidgetItem::UserType,
+	SIDE_LAYOUT,
+	QUESTION_GROUP_LAYOUT,
+	QUESTION_LAYOUT,
+	BUBBLE_LAYOUT,
+	UNASSIGNED_ITEM_LIST
+};
 
-class SheetLayoutEditor : public QDialog
-{
+class SheetLayoutEditor : public QDialog {
 	Q_OBJECT
 
 public:
@@ -21,13 +29,13 @@ public:
 
 private slots:
 	void on_layoutChooser_activated(const QString &text);
-	
+
 	void on_layoutTree_itemSelectionChanged();
 
 	void on_zoomOutButton_clicked();
 	void on_zoomInButton_clicked();
 
-	void on_alignBackgroundButton_clicked(); 
+	void on_alignBackgroundButton_clicked();
 	void on_recognizeCirclesButton_clicked();
 
 	void on_bubbleTextEdit_editingFinished();
@@ -47,22 +55,22 @@ private:
 
 
 	//The current sheet layout being modified
-	SheetLayout currentLayout_{};
+	ScanSheetLayout currentLayout_{};
 
-	//Stores any layout elements that have been created using the GUI but have not yet been assigned a parent item.
-	UnassignedLayoutElements unassignedLayoutElements_{};
+	//Stores any layout elements that have been created using the GUI but have not yet been added to a parent
+	LayoutElementContainer unownedLayoutElements{};
 
-	//The image displayed in the editor to graphically show the current layout
+	//The reference image showed in the layout editor
 	SheetScan editorImage_{};
 	//The zoom level of the editor image
 	float editorImageScale_{1.0};
 
 	//Pointers to the current "focused" layout elements. When multiple layout elements of the same type are selected, one of them is chosen to be the focus. This is the one that is controlled by the editing tools on the left
-	//(except of course for tools that apply to multiple elements).
-	QTreeWidgetItem* focusedBubble{nullptr};
-	QTreeWidgetItem* focusedQuestion{nullptr};
-	QTreeWidgetItem* focusedGroup{nullptr};
-	QTreeWidgetItem* focusedSide{nullptr};
+	//(except for tools that apply to multiple elements).
+	SideLayout* focusedSideLayout{nullptr};
+	GroupLayout* focusedGroupLayout{nullptr};
+	QuestionLayout* focusedQuestionLayout{nullptr};
+	BubbleLayout* focusedBubbleLayout{nullptr};
 
 	///
 	/// <summary> Retreive the list of layouts from the filesystem and display them in the leyout picker combobox. </summary>
@@ -88,7 +96,14 @@ private:
 	///
 	/// <summary> Build the layout tree display based on the currently open layout </summary>
 	///
-	int displayLayoutTree();
+	int buildLayoutTree();
+
+	///
+	/// <summary> Get a tree item representing a sheet layout element and all of its children. Used by buildLayoutTree.</summary>
+	/// <param name="layoutElement"> layoutElement The layout element to generate a tree item for </param>
+	/// <param name="parent"> The tree item that should be this item's parent. If this parameter is omitted the item will have no parent.
+	///
+	QTreeWidgetItem* buildTreeWidget(SheetLayoutElement* layoutElement, QTreeWidgetItem* parent = nullptr);
 
 	///
 	/// <summary> Open an image file as the editor background image and display it in the editor. </summary>
@@ -96,6 +111,7 @@ private:
 	/// <param name="filename"> The filename of the image to load. Note that this must be a fully filename (including its path). The filename returned by SheetLayout::backgroundImageFilename() will not suffice. </param>
 	///
 	int openEditorImage(const std::string& filename);
+
 
 	void annotateEditorImage();
 
@@ -131,46 +147,16 @@ private:
 	///
 	/// <returns> Non-negative if successful, negative if an error occured. </returns>
 	///
-	int removeLayoutElement(QTreeWidgetItem *item);
+	void removeLayoutElement(QTreeWidgetItem *item);
 
 	///
-	/// <summary> Check whether an item in the layout tree display has been assigned a parent layout element. </summary>
+	/// <summary> Check whether an item in the layout tree display is owned by a parent layout element. </summary>
 	///
 	/// <param name="item"> The item to check </param>
 	///
 	/// <returns> True if the layout tree item is has a parent layout element, false if it is in the unassigned layout elements list </returns>
 	///
-	bool isAssigned(QTreeWidgetItem *item);
+	bool isOwned(QTreeWidgetItem *item);
 
-	///
-	/// <summary> Find the side layout element associated with an item in the layout tree display. </summary>
-	///
-	/// <param name="item"> The item whose side layout element to find. An error will occur if the item provided does not corrispond to a side layout. </param>
-	///
-	/// <returns> A pointer to the corrisponding side layout, or a null pointer if an error occured </returns>
-	struct SideLayout* findSideLayout(QTreeWidgetItem *item);
-
-	///
-	/// <summary> Find the question group layout element associated with an item in the layout tree display. </summary>
-	///
-	/// <param name="item"> The item whose question group layout element to find. An error will occur if the item provided does not corrispond to a question group layout. </param>
-	///
-	/// <returns> A pointer to the corrisponding question group layout, or a null pointer if an error occured </returns>
-	struct QuestionGroupLayout* findQuestionGroupLayout(QTreeWidgetItem *item);
-
-	///
-	/// <summary> Find the question layout element associated with an item in the layout tree display. </summary>
-	///
-	/// <param name="item"> The item whose question layout element to find. An error will occur if the item provided does not corrispond to a question layout. </param>
-	///
-	/// <returns> A pointer to the corrisponding question layout, or a null pointer if an error occured </returns>
-	struct QuestionLayout* findQuestionLayout(QTreeWidgetItem* item);
-
-	///
-	/// <summary> Find the bubble layout element associated with an item in the layout tree display. </summary>
-	///
-	/// <param name="item"> The item whose bubble layout element to find. An error will occur if the item provided does not corrispond to a bubble layout. </param>
-	///
-	/// <returns> A pointer to the corrisponding bubble layout, or a null pointer if an error occured </returns>
-	struct BubbleLayout* findBubbleLayout(QTreeWidgetItem* item);
+	SheetLayoutElement* findLayoutElement(QTreeWidgetItem* item);
 };

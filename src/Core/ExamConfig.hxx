@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DetectionParams.hxx"
-#include "SheetLayout.hxx"
+#include "ScanSheetLayout.hxx"
 
 class ExamConfig {
 public:
@@ -14,7 +14,7 @@ private:
 
 	DetectionParams alignmentAlgorithm_;
 	DetectionParams detectionAlgorithm_;
-	SheetLayout sheetLayout_;
+	ScanSheetLayout sheetLayout_;
 
 };
 

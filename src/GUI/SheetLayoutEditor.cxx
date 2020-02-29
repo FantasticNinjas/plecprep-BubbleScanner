@@ -10,7 +10,7 @@
 
 #include "FilenameOracle.hxx"
 #include "QtLogging.hxx"
-#include "SheetLayoutTreeBuilder.hxx"
+#include "FileUtil.hxx"
 
 namespace {
 	std::ostringstream tlOss;
@@ -54,33 +54,37 @@ void SheetLayoutEditor::on_layoutChooser_activated(const QString &text) {
 
 void SheetLayoutEditor::on_layoutTree_itemSelectionChanged() {
 	//Reset focused items;
-	focusedSide = nullptr;
-	focusedGroup = nullptr;
-	focusedQuestion = nullptr;
-	focusedBubble = nullptr;
+	focusedSideLayout = nullptr;
+	focusedGroupLayout = nullptr;
+	focusedQuestionLayout = nullptr;
+	focusedBubbleLayout = nullptr;
 
 	//Search through the currently selected items and select one of each type to be the focus
-	for(const auto& treeItem : ui->layoutTree->selectedItems()) {
-		if(treeItem->type() == (int)TreeItemType::SIDE_LAYOUT && findSideLayout(treeItem) != nullptr) {
-			focusedSide = treeItem;
-		} else if(treeItem->type() == (int)TreeItemType::QUESTION_GROUP_LAYOUT && findQuestionGroupLayout(treeItem) != nullptr) {
-			focusedGroup = treeItem;
-		} else if(treeItem->type() == (int)TreeItemType::QUESTION_LAYOUT && findQuestionLayout(treeItem) != nullptr) {
-			focusedQuestion = treeItem;
-		} else if(treeItem->type() == (int)TreeItemType::BUBBLE_LAYOUT && findBubbleLayout(treeItem) != nullptr) {
-			focusedBubble = treeItem;
+	for(const auto treeItem : ui->layoutTree->selectedItems()) {
+		switch(treeItem->type()) {
+		case (int)TreeItemType::BUBBLE_LAYOUT:
+			focusedBubbleLayout = dynamic_cast<BubbleLayout*>(findLayoutElement(treeItem));
+			break;
+		case (int)TreeItemType::QUESTION_LAYOUT:
+			focusedQuestionLayout = dynamic_cast<QuestionLayout*>(findLayoutElement(treeItem));
+			break;
+		case (int)TreeItemType::QUESTION_GROUP_LAYOUT:
+			focusedGroupLayout = dynamic_cast<GroupLayout*>(findLayoutElement(treeItem));
+			break;
+		case (int)TreeItemType::SIDE_LAYOUT:
+			focusedSideLayout = dynamic_cast<SideLayout*>(findLayoutElement(treeItem));
+			break;
 		}
 	}
 
 	//Open editor image
-	if(focusedSide != nullptr) {
-		openEditorImage(FilenameOracle::getLayoutDirectoryFilename() + FilenameOracle::getImageDirectory() + findSideLayout(focusedSide)->bgImage_);
+	if(focusedSideLayout != nullptr) {
+		openEditorImage(FilenameOracle::getLayoutDirectoryFilename() + FilenameOracle::getImageDirectory() + focusedSideLayout->getReferenceImageFilename());
+		//Update the editor image to reflect the change in selection
 	}
+	reloadEditorImage();
 	//Update toolbox fields
 	updateBubbleEditor();
-
-	//Update the editor image to reflect the change in selection
-	reloadEditorImage();
 }
 
 void SheetLayoutEditor::on_zoomOutButton_clicked() {
@@ -190,10 +194,10 @@ void SheetLayoutEditor::on_recognizeCirclesButton_clicked() {
 	if(status == 0) {
 		for(const auto& circle : circles) {
 			BubbleLayout bubble;
-			bubble.location_ = circle;
-			unassignedLayoutElements_.add(bubble);
+			bubble.setLocation(circle);
+			unownedLayoutElements.add(bubble);
 		}
-		displayLayoutTree();
+		buildLayoutTree();
 		reloadEditorImage();
 	}
 	
@@ -216,8 +220,8 @@ void SheetLayoutEditor::on_bubbleRadiusEdit_editingFinished() {
 }
 
 void SheetLayoutEditor::on_addBubble_clicked() {
-	unassignedLayoutElements_.add(BubbleLayout());
-	displayLayoutTree();
+	unownedLayoutElements.add(BubbleLayout());
+	buildLayoutTree();
 	reloadEditorImage();
 }
 
@@ -225,7 +229,9 @@ void SheetLayoutEditor::on_deleteBubbles_clicked() {
 
 	//Search through the currently selected items for bubbles to delete
 	for(const auto& treeItem : ui->layoutTree->selectedItems()) {
-
+		if(treeItem->type() == static_cast<int>(TreeItemType::BUBBLE_LAYOUT)) {
+			removeLayoutElement(treeItem);
+		}
 	}
 }
 
@@ -247,26 +253,30 @@ int SheetLayoutEditor::reloadLayoutList() {
 
 	//Remove any existing items in the layout picker
 	ui->layoutChooser->clear();
+	layouts_.clear();
 
 	QDir sheetLayoutsDirectory(QString::fromStdString(FilenameOracle::getLayoutDirectoryFilename()), "*.xml");
-	QStringList layoutFilenames = sheetLayoutsDirectory.entryList();
+	QFileInfoList layoutFiles = sheetLayoutsDirectory.entryInfoList();
 
-	tlOss << "Loaded " << layoutFilenames.size() << " sheet layout files.";
+	tlOss << "Found " << layoutFiles.size() << " sheet layout files.";
 	qlog.debug(__FILE__, __LINE__, this, tlOss);
 
-	//Get the title of each sheet layout in the list and add it to the drop down menu as well as the list of sheet layouts (SheetLayoutEditor::layouts);
-	for(const auto& filename : layoutFilenames) {
-		//Note: The list of items provided by QDir does not include paths, only the name of the file itself. As such, it is necessary 
-		//to add the directory name manually to each before passing it to getLayoutTitle
-		std::string qualifiedFilename = FilenameOracle::getLayoutDirectoryFilename() + filename.toStdString();
-		std::string layoutTitle = SheetLayout::getLayoutTitle(qualifiedFilename);
-
-		if(layoutTitle.empty()) {
-			tlOss << "Failed to get sheet layout title for layout file \"" << qualifiedFilename << "\"";
+	//Get the title of each sheet layout in the list and add it to the drop down menu as well as the list of sheet layouts
+	for(const auto& fileInfo : layoutFiles) {
+		//Open the scan sheet layout file for reading
+		QFile currentLayoutFile(fileInfo.absoluteFilePath());
+		currentLayoutFile.open(QIODevice::ReadOnly | QIODevice::Text);
+		
+		//Read the sheet layout file into a scan sheet layout
+		ScanSheetLayout currentLayout;
+		if(currentLayout.readXml(FileUtil::getInputStream(currentLayoutFile)) < 0) {
+			tlOss << "Failed to read sheet layout file \"" << fileInfo.fileName().toStdString() << "\"";
 			qlog.warning(__FILE__, __LINE__, this, tlOss);
 		} else {
+			//Add this sheet layout to the layout picker box
+			std::string layoutTitle = currentLayout.getTitle();
 			ui->layoutChooser->addItem(QString::fromStdString(layoutTitle));
-			layouts_[layoutTitle] = qualifiedFilename;
+			layouts_[layoutTitle] = fileInfo.absoluteFilePath().toStdString();
 		}
 	}
 
@@ -286,7 +296,7 @@ void SheetLayoutEditor::openSelectedLayout() {
 	}
 }
 
-int SheetLayoutEditor::openLayout(const std::string & layoutTitle) {
+int SheetLayoutEditor::openLayout(const std::string& layoutTitle) {
 	int status = 0;
 
 	//Check that the layout to load is in the list of layouts.
@@ -298,19 +308,21 @@ int SheetLayoutEditor::openLayout(const std::string & layoutTitle) {
 
 	//Load the sheet layout
 	if(status >= 0) {
-		if(currentLayout_.load(layouts_[layoutTitle]) < 0) {
+		QFile sheetLayoutFile(QString::fromStdString(layouts_[layoutTitle]));
+		sheetLayoutFile.open(QIODevice::ReadOnly | QIODevice::Text);
+		if(currentLayout_.readXml(FileUtil::getInputStream(sheetLayoutFile)) < 0) {
 			status = -1;
-			tlOss << "Failed to load sheet layout \"" << layoutTitle << "\" from \"" << layouts_[layoutTitle] << "\".";
+			tlOss << "Failed to load sheet layout \"" << layoutTitle << "\" from \"" << layouts_[layoutTitle] << "\"";
 			qlog.critical(__FILE__, __LINE__, this, tlOss);
 		}
 	}
 
-	//Populate the layout tree widget
+	//Rebuild the layout tree display based on the new scan sheet layout
 	if(status >= 0) {
-		status = displayLayoutTree();
+		status = buildLayoutTree();
 	}
 
-	//Display the editor background image.
+	//Update the editor background image based on the new scan sheet layout
 	if(status >= 0) {
 		status = reloadEditorImage();
 	}
@@ -318,31 +330,54 @@ int SheetLayoutEditor::openLayout(const std::string & layoutTitle) {
 	return status;
 }
 
-int SheetLayoutEditor::displayLayoutTree() {
+int SheetLayoutEditor::buildLayoutTree() {
 	int status = 0;
 
 	//Clear out any items already in the tree
 	ui->layoutTree->clear();
 
-	//List to hold top level tree elements (the sheet sides)
-	QList<QTreeWidgetItem *> sheetSideItems;
-	for(const auto& sideLayout : currentLayout_.getSideLayouts()) {
-		//Generate subtrees for each of the side layouts in the current layout. 
-		QTreeWidgetItem* currentSideItem = LayoutTreeBuilder::generateTreeItem(sideLayout);
-		sheetSideItems.push_back(currentSideItem);
+	//Create tree items to represent the sheet layout elements on each side of the scan sheet
+	for(int i = 0; i < currentLayout_.numSides(); i++) {
+		ui->layoutTree->addTopLevelItem(buildTreeWidget(currentLayout_.sideLayout(i)));
 	}
+	
 
 	//Create tree items to represent unassigned layout elements
-	QTreeWidgetItem* unassignedElementItems = new QTreeWidgetItem((QTreeWidgetItem*)nullptr, QStringList("Unassigned Elements"), (int)TreeItemType::UNASSIGNED_ITEM_LIST);
-	unassignedElementItems->addChildren(unassignedLayoutElements_.treeWidgetItem());
+	QTreeWidgetItem* unownedElementsItem = new QTreeWidgetItem((QTreeWidgetItem*)nullptr, QStringList("Unassigned Elements"), (int)TreeItemType::UNASSIGNED_ITEM_LIST);
+	
+	for(int i = 0; i < unownedLayoutElements.size(); i++) {
+		buildTreeWidget(unownedLayoutElements.elementAt(i), unownedElementsItem);
+	}
 
-	//Add the tree of items to the layout tree display
-	ui->layoutTree->addTopLevelItems(sheetSideItems);
-
-	//Add unassigned layout items to layout tree display
-	ui->layoutTree->addTopLevelItem(unassignedElementItems);
+	//Add unowned layout elements to tree
+	ui->layoutTree->addTopLevelItem(unownedElementsItem);
 
 	return status;
+}
+
+QTreeWidgetItem* SheetLayoutEditor::buildTreeWidget(SheetLayoutElement* layoutElement, QTreeWidgetItem* parent) {
+
+	//Find the type of this sheet element
+	TreeItemType itemType = TreeItemType::UNKNOWN;
+	if(dynamic_cast<BubbleLayout*>(layoutElement) != nullptr) {
+		itemType = TreeItemType::BUBBLE_LAYOUT;
+	} else if(dynamic_cast<QuestionLayout*>(layoutElement) != nullptr) {
+		itemType = TreeItemType::QUESTION_LAYOUT;
+	} else if(dynamic_cast<GroupLayout*>(layoutElement) != nullptr) {
+		itemType = TreeItemType::QUESTION_GROUP_LAYOUT;
+	} else if(dynamic_cast<SideLayout*>(layoutElement) != nullptr) {
+		itemType = TreeItemType::SIDE_LAYOUT;
+	}
+
+	//Create the tree item for this layout element
+	QTreeWidgetItem* current = new QTreeWidgetItem(parent, QStringList(QString::fromStdString(layoutElement->toString())), static_cast<int>(itemType));
+
+	//Generate tree items for the children of this layout element
+	for(int i = 0; i < layoutElement->numChildren(); i++) {
+		buildTreeWidget(layoutElement->childAt(i), current);
+	}
+
+	return current;
 }
 
 int SheetLayoutEditor::openEditorImage(const std::string& filename) {
@@ -376,7 +411,7 @@ void SheetLayoutEditor::annotateEditorImage() {
 	}
 
 	if(status <= 0) {
-		//Remove any existing annotations in the editor image
+		//Reset all annotations on the layout background image
 		editorImage_.resetAnnotations();
 
 		//Draw each visible item in the layout tree
@@ -386,13 +421,13 @@ void SheetLayoutEditor::annotateEditorImage() {
 			if(item->isSelected()) {
 				color = cv::Scalar(0, 0, 255);
 			}
-
+			 
 			//Draw the layout element
 
 			if(item->type() == (int)TreeItemType::BUBBLE_LAYOUT) {
-				BubbleLayout* bubble = findBubbleLayout(item);
+				BubbleLayout* bubble = dynamic_cast<BubbleLayout*>(findLayoutElement(item));
 				if(bubble != nullptr) {
-					editorImage_.annotateCircle(bubble->location_, color, 2);
+					editorImage_.annotateCircle(bubble->getLocation(), color, 2);
 				}
 			}
 		}
@@ -426,21 +461,15 @@ void SheetLayoutEditor::boxSelection(cv::Rect2f & selectionBox) {
 	}
 
 	if(status >= 0) {
-		//Iterate over all bubble layouts in the unassigned layout elements list
+		//Iterate over all unowned layout elements
 		for(int i = 0; i < unassignedElementsItem->childCount(); i++) {
 			QTreeWidgetItem* item = unassignedElementsItem->child(i);
-			if(item->type() == (int)TreeItemType::BUBBLE_LAYOUT) {
-				//Find the bubble layout corrisponding to the current tree item
-				BubbleLayout* bubble = findBubbleLayout(item);
-				if(bubble == nullptr) {
-					tlOss << "Failed to resolve layout tree item \"" << item->text(0).toStdString() << "\" as a bubble layout element";
-					qlog.warning(__FILE__, __LINE__, this, tlOss);
-					continue;
-				}
-
-				//If the bubble's bounding box overlaps with the selction box, select it
-				cv::Rect2f boundingBox = bubble->boundingBox();
-				if((selectionBox & bubble->boundingBox()).area() > 0) {
+			SheetLayoutElement* element = findLayoutElement(item);
+			if(element == nullptr) {
+				tlOss << "Encountered invalid sheet layout element while performing box selection.";
+				qlog.warning(__FILE__, __LINE__, this, tlOss);
+			} else {
+				if((selectionBox & element->boundingBox()).area() > 0) {
 					item->setSelected(true);
 				}
 			}
@@ -546,13 +575,7 @@ int SheetLayoutEditor::reloadAlgorithmList() {
 void SheetLayoutEditor::updateBubbleEditor() {
 	int status = 0;
 
-	//Find the currently focused bubble
-	BubbleLayout* bubble = nullptr;
-	if(focusedBubble != nullptr) {
-		bubble = findBubbleLayout(focusedBubble);
-	}
-
-	if(bubble == nullptr) {
+	if(focusedBubbleLayout == nullptr) {
 		tlOss << "Not updating bubble editor because no bubble is selected.";
 		qlog.debug(__FILE__, __LINE__, this, tlOss);
 		resetbubbleEditor();
@@ -561,22 +584,22 @@ void SheetLayoutEditor::updateBubbleEditor() {
 
 	if(status == 0) {
 		//Set bubble text
-		ui->bubbleTextEdit->setText(QString::fromStdString(bubble->answer_));
+		ui->bubbleTextEdit->setText(QString::fromStdString(focusedBubbleLayout->getAnswer()));
 		//Set bubble x coordinate
 		std::ostringstream xCoordStream;
-		xCoordStream << bubble->location_[0];
+		xCoordStream << focusedBubbleLayout->getLocation()[0];
 		ui->bubbleXEdit->setText(QString::fromStdString(xCoordStream.str()));
 		//Set bubble y coordinate
 		std::ostringstream yCoordStream;
-		yCoordStream << bubble->location_[1];
+		yCoordStream << focusedBubbleLayout->getLocation()[1];
 		ui->bubbleYEdit->setText(QString::fromStdString(yCoordStream.str()));
 		//Set bubble radius
 		std::ostringstream radiusStream;
-		radiusStream << bubble->location_[2];
+		radiusStream << focusedBubbleLayout->getLocation()[2];
 		ui->bubbleRadiusEdit->setText(QString::fromStdString(radiusStream.str()));
 
 		//Set box selection bounds to boundingbox
-		cv::Rect2f boundingBox = bubble->boundingBox();
+		cv::Rect2f boundingBox = focusedBubbleLayout->boundingBox();
 		std::ostringstream leftBoundStream;
 		leftBoundStream << boundingBox.x;
 		ui->boxSelectLeftBound->setText(QString::fromStdString(leftBoundStream.str()));
@@ -598,13 +621,7 @@ void SheetLayoutEditor::updateBubbleEditor() {
 void SheetLayoutEditor::applyBubbleEditor() {
 	int status = 0;
 
-	//Find the currently focused bubble
-	BubbleLayout* bubble = nullptr;
-	if(focusedBubble != nullptr) {
-		bubble = findBubbleLayout(focusedBubble);
-	}
-
-	if(bubble == nullptr) {
+	if(focusedBubbleLayout == nullptr) {
 		tlOss << "Not updating bubble editor because no bubble is selected.";
 		qlog.debug(__FILE__, __LINE__, this, tlOss);
 		resetbubbleEditor();
@@ -613,12 +630,12 @@ void SheetLayoutEditor::applyBubbleEditor() {
 
 	if(status == 0) {
 		//Set fields on focused bubble
-		bubble->answer_ = ui->bubbleTextEdit->text().toStdString();
-		bubble->location_[0] = ui->bubbleXEdit->text().toFloat();
-		bubble->location_[1] = ui->bubbleYEdit->text().toFloat();
-		bubble->location_[2] = ui->bubbleRadiusEdit->text().toFloat();
+		focusedBubbleLayout->setAnswer(ui->bubbleTextEdit->text().toStdString());
+		focusedBubbleLayout->setCenterX(ui->bubbleXEdit->text().toFloat());
+		focusedBubbleLayout->setCenterY(ui->bubbleYEdit->text().toFloat());
+		focusedBubbleLayout->setRadius(ui->bubbleRadiusEdit->text().toFloat());
 
-		displayLayoutTree();
+		buildLayoutTree();
 		reloadEditorImage();
 	}
 }
@@ -630,17 +647,37 @@ void SheetLayoutEditor::resetbubbleEditor() {
 	ui->bubbleRadiusEdit->setText("");
 }
 
-int SheetLayoutEditor::removeLayoutElement(QTreeWidgetItem * item) {
+void SheetLayoutEditor::removeLayoutElement(QTreeWidgetItem* item) {
 	int status = 0;
 	if(item == nullptr) {
 		status = -1;
 		tlOss << "Attempted to delete null tree item";
 		qlog.critical(__FILE__, __LINE__, this, tlOss);
 	}
-	return 0;
+
+	SheetLayoutElement* layoutElement;
+	if(status >= 0) {
+		layoutElement = findLayoutElement(item);
+		if(layoutElement == nullptr) {
+			status = -1;
+			tlOss << "Failed to find sheet layout element to delete.";
+		}
+	}
+
+	if(status >= 0) {
+		//Remove the sheet layout element from its parent
+		SheetLayoutElement* parent = layoutElement->getParent();
+		//If parent is null than the sheet layout element is either unowned or it is a side layout element. Right now removing side layout elements is not supported, so assume it is unowned
+		if(parent == nullptr) {	
+			unownedLayoutElements.remove(layoutElement);
+		} else {
+			parent->removeChild(layoutElement);
+		}
+	}
+	buildLayoutTree();
 }
 
-bool SheetLayoutEditor::isAssigned(QTreeWidgetItem * item) {
+bool SheetLayoutEditor::isOwned(QTreeWidgetItem * item) {
 	int status = 0;
 	if(item == nullptr) {
 		status = -1;
@@ -649,271 +686,56 @@ bool SheetLayoutEditor::isAssigned(QTreeWidgetItem * item) {
 	}
 
 	QTreeWidgetItem* parent = nullptr;
+	bool isOwned = false;
 	if(status >= 0) {
 		parent = item->parent();
 		if(parent == nullptr) {
-			status = -1;
-			tlOss << "Encountered tree item with null parent.";
-			qlog.critical(__FILE__, __LINE__, this, tlOss);
+			//If parent is item is a null pointer then this is a top level item in the layout tree and is owned by the sheet layout element
+			status = 1;
+			isOwned = true;
 		}
 	}
 
-	bool isAssigned = false;
-	if(status >= 0) {
+	if(status == 0) {
 		if(parent->type() != (int)TreeItemType::UNASSIGNED_ITEM_LIST) {
-			isAssigned = true;
+			isOwned = true;
 		}
 	}
 
-	return isAssigned;
+	return isOwned;
 }
 
-SideLayout* SheetLayoutEditor::findSideLayout(QTreeWidgetItem*item) {
+SheetLayoutElement* SheetLayoutEditor::findLayoutElement(QTreeWidgetItem* item) {
 	int status = 0;
 
-	//Check that provided widget item exists and represents a side layout
-
-	if(item == nullptr || item->type() != (int)TreeItemType::SIDE_LAYOUT) {
+	if(item == nullptr) {
 		status = -1;
-		tlOss << "Selected item does not represent a side layout but was interpreted as one";
-		qlog.critical(__FILE__, __LINE__, this, tlOss);
 	}
 
-	//Get the index of the provided widget item.
-	//Note that side layouts should always be a top level item.
-	int sideNumber;
-	if(status >= 0) {
-		sideNumber = ui->layoutTree->indexOfTopLevelItem(item);
-
-		if(sideNumber < 0) {
-			status = -1;
-			tlOss << "Selected side layout is not a top level item.";
-			qlog.critical(__FILE__, __LINE__, this, tlOss);
-		}
-	}
-
-	//Check that sideNumber is a valid index in the SheetLayout. This check should never fail, but it's worth doing in case the GUI has somehow gotten out of sync with the currentLayout
-	if(status >= 0) {
-		if(sideNumber >= currentLayout_.numSideLayouts()) {
-			status = -1;
-			tlOss << "GUI requested side layout that does not exist (index " << sideNumber << " of " << currentLayout_.numSideLayouts() << ") The user interface may be out of sync with the internal state of the program.";
-			qlog.critical(__FILE__, __LINE__, this, tlOss);
-		}
-	}
-
-	//Retrieve the requested side layout
-	struct SideLayout* sideLayout = nullptr;
-	if(status >= 0) {
-		sideLayout = &currentLayout_.getSideLayouts()[sideNumber];
-	}
-
-	return sideLayout;
-}
-
-struct QuestionGroupLayout* SheetLayoutEditor::findQuestionGroupLayout(QTreeWidgetItem* item) {
-
-	int status = 0;
-
-	//Check that the provided tree widget item represents a question group
-	if(item == nullptr || item->type() != (int)TreeItemType::QUESTION_GROUP_LAYOUT) {
-		status = -1;
-		tlOss << "Selected item does not represent a question group layout but was interpreted as one";
-		qlog.critical(__FILE__, __LINE__, this, tlOss);
-	}
-
-	//Check that the provided tree widget item is in the layout tree and is not a top level item
-	QTreeWidgetItem* parent  = nullptr;
-	if(status >= 0) {
-		parent = item->parent();
-		if(parent == nullptr) {
-			status = -1;
-			tlOss << "Attempted to access question group item that is not present in the layout tree or is erroniously a top level item.";
-			qlog.critical(__FILE__, __LINE__, this, tlOss);
-		}
-	}
-	
-	//Find the QuestionGroupLayout represented by the tree widget item
-	struct QuestionGroupLayout* questionGroup = nullptr;
-	if(status >= 0) {
-		//Find whetehr the question group is part of a side layout or on the list of unassigned items
-		int parentType = parent->type();
-		int childIndex = parent->indexOfChild(item);
-		//Parent of a question group should always be a side layout or the unassigned elements item
-		if(parentType == (int)TreeItemType::SIDE_LAYOUT) {
-			//If the parent item represents a side layout, find the side layout it represents.
-			struct SideLayout* parentSideLayout = findSideLayout(parent);
-			if(parentSideLayout == nullptr) {
-				status = -1;
-				tlOss << "Unable to find side layout containing the selected question group.";
-				qlog.critical(__FILE__, __LINE__, this, tlOss);
+	SheetLayoutElement* element = nullptr;
+	if(status == 0) {
+		//Check if this is a top level item of the layout tree (indexOfTopLevelItem() returns -1 if it is not)
+		int index = ui->layoutTree->indexOfTopLevelItem(item);
+		if(index >= 0) {
+			//If this is a top level item of the layout tree, then it is either a sheet layout or the unowned layout elements item (in which case this function should return a null pointer.
+			if(item->type() == (int)TreeItemType::SIDE_LAYOUT) {
+				element = currentLayout_.sideLayout(index);
+			} else {
+				element = nullptr;
 			}
-
-			//Check that childIndex is a valid question group index
-			if(status >= 0) {
-				if(childIndex >= parentSideLayout->getNumGroups()) {
-					status = -1;
-					tlOss << "GUI requested question group layout that does not exist (index " << childIndex << " of " << parentSideLayout->getNumGroups();
-					qlog.critical(__FILE__, __LINE__, this, tlOss);
-				}
-			}
-
-			//Get the question group from the side layout that owns it
-			if(status >= 0) {
-				questionGroup = &parentSideLayout->questionGroups_[childIndex];
-			}
-		} else if(parentType == (int)TreeItemType::UNASSIGNED_ITEM_LIST) {
-			//The question group has not yet been added to the layout tree and is instead part of the "unassigned items" list.
-			questionGroup = unassignedLayoutElements_.getQuestionGroupLayout(childIndex);
-			if(questionGroup == nullptr) {
-				tlOss << "Failed to retrieve question group associated with selected item";
-				qlog.critical(__FILE__, __LINE__, this, tlOss);
-			}
-
 		} else {
-			status = -1;
-			tlOss << "Found question group layout tree item in an invalid location.";
-			qlog.critical(__FILE__, __LINE__, this, tlOss);
+			//If this is not a top level item, request it from its parent
+			QTreeWidgetItem* parentItem = item->parent();
+			index = parentItem->indexOfChild(item);
+			SheetLayoutElement* parentElement = findLayoutElement(parentItem);
+			if(parentElement == nullptr) {
+				//If the parent element does not exist then this element is unowned and can be found in the unowned layout elements list
+				element = unownedLayoutElements.elementAt(index);
+			} else {
+				element = parentElement->childAt(index);
+			}
 		}
 	}
 
-	return questionGroup;
+	return element;
 }
-
-QuestionLayout * SheetLayoutEditor::findQuestionLayout(QTreeWidgetItem * item) {
-
-	int status = 0;
-
-	//Check that the provided tree widget item represents a question
-	if(item == nullptr || item->type() != (int)TreeItemType::QUESTION_LAYOUT) {
-		status = -1;
-		tlOss << "Selected item does not represent a question layout but was interpreted as one";
-		qlog.critical(__FILE__, __LINE__, this, tlOss);
-	}
-
-	//Check that the provided tree widget item is in the layout tree and is not a top level item
-	QTreeWidgetItem* parent = nullptr;
-	if(status >= 0) {
-		parent = item->parent();
-		if(parent == nullptr) {
-			status = -1;
-			tlOss << "Attempted to access question item that is not present in the layout tree or is erroniously a top level item.";
-			qlog.critical(__FILE__, __LINE__, this, tlOss);
-		}
-	}
-
-	//Find the QuestionLayout represented by the tree widget item
-	struct QuestionLayout* question = nullptr;
-	if(status >= 0) {
-		//Find whetehr the question is part of a side layout or on the list of unassigned items
-		int parentType = parent->type();
-		int childIndex = parent->indexOfChild(item);
-		//Parent of a question should always be a question group or the unassigned elements item
-		if(parentType == (int)TreeItemType::QUESTION_GROUP_LAYOUT) {
-			//If the parent item represents a question group layout, find the question group layout it represents.
-			struct QuestionGroupLayout* parentGroupLayout = findQuestionGroupLayout(parent);
-			if(parentGroupLayout == nullptr) {
-				status = -1;
-				tlOss << "Unable to find question group containing the selected question.";
-				qlog.critical(__FILE__, __LINE__, this, tlOss);
-			}
-
-			//Check that childIndex is a valid question group index
-			if(status >= 0) {
-				if(childIndex >= parentGroupLayout->getNumQuestions()) {
-					status = -1;
-					tlOss << "GUI requested question layout that does not exist (index " << childIndex << " of " << parentGroupLayout->getNumQuestions();
-					qlog.critical(__FILE__, __LINE__, this, tlOss);
-				}
-			}
-
-			//Get the question group from the side layout that owns it
-			if(status >= 0) {
-				question = &parentGroupLayout->questions_[childIndex];
-			}
-		} else if(parentType == (int)TreeItemType::UNASSIGNED_ITEM_LIST) {
-			//The question group has not yet been added to the layout tree and is instead part of the "unassigned items" list.
-			question = unassignedLayoutElements_.getQuestionLayout(childIndex);
-			if(question == nullptr) {
-				tlOss << "Failed to retrieve question associated with selected item";
-				qlog.critical(__FILE__, __LINE__, this, tlOss);
-			}
-
-		} else {
-			status = -1;
-			tlOss << "Found question layout tree item in an invalid location.";
-			qlog.critical(__FILE__, __LINE__, this, tlOss);
-		}
-	}
-
-	return question;
-}
-
-BubbleLayout * SheetLayoutEditor::findBubbleLayout(QTreeWidgetItem * item) {
-
-	int status = 0;
-
-	//Check that the provided tree widget item represents a bubble
-	if(item == nullptr || item->type() != (int)TreeItemType::BUBBLE_LAYOUT) {
-		status = -1;
-		tlOss << "Selected item does not represent a bubble layout but was interpreted as one";
-		qlog.critical(__FILE__, __LINE__, this, tlOss);
-	}
-
-	//Check that the provided tree widget item is in the layout tree and is not a top level item
-	QTreeWidgetItem* parent = nullptr;
-	if(status >= 0) {
-		parent = item->parent();
-		if(parent == nullptr) {
-			status = -1;
-			tlOss << "Attempted to access bubble item that is not present in the layout tree or is erroniously a top level item.";
-			qlog.critical(__FILE__, __LINE__, this, tlOss);
-		}
-	}
-
-	//Find the BubbleLayout represented by the tree widget item
-	struct BubbleLayout* bubble = nullptr;
-	if(status >= 0) {
-		//Find whether the bubble is part of a side layout or on the list of unassigned items
-		int parentType = parent->type();
-		int childIndex = parent->indexOfChild(item);
-		//Parent of a bubble should always be a question or the unassigned elements item
-		if(parentType == (int)TreeItemType::QUESTION_LAYOUT) {
-			//If the parent item represents a question layout, find the question layout it represents.
-			struct QuestionLayout* parentQuestionLayout = findQuestionLayout(parent);
-			if(parentQuestionLayout == nullptr) {
-				status = -1;
-				tlOss << "Unable to find question containing the selected bubble.";
-				qlog.critical(__FILE__, __LINE__, this, tlOss);
-			}
-
-			//Check that childIndex is a valid question group index
-			if(status >= 0) {
-				if(childIndex >= parentQuestionLayout->bubbles_.size()) {
-					status = -1;
-					tlOss << "GUI requested bubbleLayout that does not exist (index " << childIndex << " of " << parentQuestionLayout->bubbles_.size();
-					qlog.critical(__FILE__, __LINE__, this, tlOss);
-				}
-			}
-
-			//Get the question group from the side layout that owns it
-			if(status >= 0) {
-				bubble = &parentQuestionLayout->bubbles_[childIndex];
-			}
-		} else if(parentType == (int)TreeItemType::UNASSIGNED_ITEM_LIST) {
-			//The question group has not yet been added to the layout tree and is instead part of the "unassigned items" list.
-			bubble = unassignedLayoutElements_.getBubbleLayout(childIndex);
-			if(bubble == nullptr) {
-				tlOss << "Failed to retrieve bubble associated with selected item";
-				qlog.critical(__FILE__, __LINE__, this, tlOss);
-			}
-
-		} else {
-			status = -1;
-			tlOss << "Found bubble layout tree item in an invalid location.";
-			qlog.critical(__FILE__, __LINE__, this, tlOss);
-		}
-	}
-
-	return bubble;
-}
-

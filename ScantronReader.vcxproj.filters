@@ -33,65 +33,77 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pugixml.cpp">
+    <ClCompile Include="src\Core\DetectionParams.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextLogging.cxx">
+    <ClCompile Include="src\Core\Exam.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SheetLayout.cxx">
+    <ClCompile Include="src\Core\ExamConfig.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cxx">
+    <ClCompile Include="src\GUI\FilenameOracle.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Reader.cxx">
+    <ClCompile Include="src\GUI\main.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ScantronReader.cxx">
+    <ClCompile Include="src\ThirdParty\pugixml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SheetScan.cxx">
+    <ClCompile Include="src\GUI\QtLogging.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DetectionParams.cxx">
+    <ClCompile Include="src\GUI\ScantronReader.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Exam.cxx">
+    <ClCompile Include="src\GUI\SheetLayoutEditor.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FilenameOracle.cxx">
+    <ClCompile Include="src\Core\TextLogging.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ExamConfig.cxx">
+    <ClCompile Include="SheetLayoutElement.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SheetLayoutEditor.cxx">
+    <ClCompile Include="BubbleLayout.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QtLogging.cxx">
+    <ClCompile Include="QuestionLayout.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UnassignedLayoutElements.cxx">
+    <ClCompile Include="GroupLayout.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SheetLayoutTreeBuilder.cxx">
+    <ClCompile Include="SideLayout.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScanSheetLayout.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\SheetScan.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LayoutElementContainer.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtil.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="ScantronReader.hxx">
+    <QtMoc Include="src\GUI\ScantronReader.hxx">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="SheetLayoutEditor.hxx">
+    <QtMoc Include="src\GUI\SheetLayoutEditor.hxx">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="ScantronReader.ui">
+    <QtUic Include="src\GUI\ScantronReader.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtUic Include="SheetLayoutEditor.ui">
+    <QtUic Include="src\GUI\SheetLayoutEditor.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
@@ -101,43 +113,55 @@
     </QtRcc>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pugiconfig.hpp">
+    <ClInclude Include="src\Core\DetectionParams.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pugixml.hpp">
+    <ClInclude Include="src\Core\Exam.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TextLogging.hxx">
+    <ClInclude Include="src\Core\ExamConfig.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SheetLayout.hxx">
+    <ClInclude Include="src\GUI\FilenameOracle.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Reader.hxx">
+    <ClInclude Include="src\ThirdParty\pugiconfig.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SheetScan.hxx">
+    <ClInclude Include="src\ThirdParty\pugixml.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DetectionParams.hxx">
+    <ClInclude Include="src\GUI\QtLogging.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Exam.hxx">
+    <ClInclude Include="src\Core\TextLogging.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FilenameOracle.hxx">
+    <ClInclude Include="SheetLayoutElement.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ExamConfig.hxx">
+    <ClInclude Include="BubbleLayout.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QtLogging.hxx">
+    <ClInclude Include="QuestionLayout.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UnassignedLayoutElements.hxx">
+    <ClInclude Include="GroupLayout.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SheetLayoutTreeBuilder.hxx">
+    <ClInclude Include="SideLayout.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScanSheetLayout.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\SheetScan.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LayoutElementContainer.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileUtil.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
