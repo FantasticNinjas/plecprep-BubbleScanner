@@ -147,7 +147,7 @@ private:
 	///
 	/// <returns> Non-negative if successful, negative if an error occured. </returns>
 	///
-	void removeLayoutElement(QTreeWidgetItem *item);
+	void removeLayoutElements(QList<QTreeWidgetItem*>& items);
 
 	///
 	/// <summary> Check whether an item in the layout tree display is owned by a parent layout element. </summary>

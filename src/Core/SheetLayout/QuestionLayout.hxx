@@ -47,7 +47,7 @@ public:
 	/// <summary> Add a bubble to this question layout </summary>
 	/// <param name="bubble"> The bubble to add </param>
 	///
-	void addBubble(const BubbleLayout& bubble);
+	void addBubble(const BubbleLayout* bubble);
 
 	///
 	/// <summary> Get a pointer to one of the bubble layouts owned by this question by its index </summary>
@@ -78,11 +78,6 @@ public:
 	size_t numChildren() const;
 
 	///
-	/// <summary> Get a vector containing all of the bubbles owned by this question </summary>
-	///
-	const std::vector<BubbleLayout>& allBubbles() const;
-
-	///
 	/// <summary> Get a pointer to the sheet layout element that owns this one, or a null pointer if it is unowned </summary>
 	///
 	SheetLayoutElement* getParent() const;
@@ -103,7 +98,7 @@ public:
 	bool operator>(const QuestionLayout& rhs) const;
 private:
 	int questionNumber_{-1};
-	std::vector<BubbleLayout> bubbles_{};
+	std::vector<std::unique_ptr<BubbleLayout>> bubbles_{};
 	SheetLayoutElement* parent_{nullptr};
 };
 

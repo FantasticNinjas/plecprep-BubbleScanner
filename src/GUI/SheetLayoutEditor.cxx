@@ -228,11 +228,15 @@ void SheetLayoutEditor::on_addBubble_clicked() {
 void SheetLayoutEditor::on_deleteBubbles_clicked() {
 
 	//Search through the currently selected items for bubbles to delete
+	QList<QTreeWidgetItem*> itemsToDelete;
 	for(const auto& treeItem : ui->layoutTree->selectedItems()) {
 		if(treeItem->type() == static_cast<int>(TreeItemType::BUBBLE_LAYOUT)) {
-			removeLayoutElement(treeItem);
+			itemsToDelete.append(treeItem);
 		}
 	}
+
+	removeLayoutElements(itemsToDelete);
+	buildLayoutTree();
 }
 
 void SheetLayoutEditor::on_boxSelectActivate_clicked() {
@@ -647,37 +651,44 @@ void SheetLayoutEditor::resetbubbleEditor() {
 	ui->bubbleRadiusEdit->setText("");
 }
 
-void SheetLayoutEditor::removeLayoutElement(QTreeWidgetItem* item) {
+void SheetLayoutEditor::removeLayoutElements(QList<QTreeWidgetItem*>& items) {
 	int status = 0;
-	if(item == nullptr) {
-		status = -1;
-		tlOss << "Attempted to delete null tree item";
-		qlog.critical(__FILE__, __LINE__, this, tlOss);
-	}
 
-	SheetLayoutElement* layoutElement;
-	if(status >= 0) {
-		layoutElement = findLayoutElement(item);
-		if(layoutElement == nullptr) {
+	//Find all layout elements to be removed before removing any of them. This is done because findLayoutElement() produces undefined behavoir if the GUI is out of synch with the model, but refreshing the GUI between each delete operation is expensive
+	std::vector<SheetLayoutElement*> layoutElements;
+	for(const auto& item : items) {
+		if(item == nullptr) {
 			status = -1;
-			tlOss << "Failed to find sheet layout element to delete.";
+			tlOss << "Attempted to delete null tree item";
+			qlog.critical(__FILE__, __LINE__, this, tlOss);
+		}
+
+		if(status >= 0) {
+			SheetLayoutElement* layoutElement = findLayoutElement(item);
+			if(layoutElement == nullptr) {
+				status = -1;
+				tlOss << "Failed to find sheet layout element to delete.";
+			} else {
+				layoutElements.push_back(layoutElement);
+			}
 		}
 	}
 
-	if(status >= 0) {
-		//Remove the sheet layout element from its parent
-		SheetLayoutElement* parent = layoutElement->getParent();
-		//If parent is null than the sheet layout element is either unowned or it is a side layout element. Right now removing side layout elements is not supported, so assume it is unowned
-		if(parent == nullptr) {	
-			unownedLayoutElements.remove(layoutElement);
-		} else {
-			parent->removeChild(layoutElement);
+	for(const auto& layoutElement : layoutElements) {
+		if(status >= 0) {
+			//Remove the sheet layout element from its parent
+			SheetLayoutElement* parent = layoutElement->getParent();
+			//If parent is null than the sheet layout element is either unowned or it is a side layout element. Right now removing side layout elements is not supported, so assume it is unowned
+			if(parent == nullptr) {
+				unownedLayoutElements.remove(layoutElement);
+			} else {
+				parent->removeChild(layoutElement);
+			}
 		}
 	}
-	buildLayoutTree();
 }
 
-bool SheetLayoutEditor::isOwned(QTreeWidgetItem * item) {
+bool SheetLayoutEditor::isOwned(QTreeWidgetItem* item) {
 	int status = 0;
 	if(item == nullptr) {
 		status = -1;

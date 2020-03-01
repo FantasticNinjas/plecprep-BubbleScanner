@@ -11,8 +11,8 @@ GroupLayout::~GroupLayout() = default;
 
 GroupLayout::GroupLayout(const GroupLayout& other) {
 	name_ = other.getName();
-	for(const auto& question : other.allQuestions()) {
-		addQuestion(question);
+	for(int i = 0; i < other.numChildren(); i++) {
+		addQuestion(other.questionAt(i));
 	}
 }
 
@@ -37,8 +37,8 @@ int GroupLayout::removeChild(SheetLayoutElement * sheetLayoutElement) {
 
 cv::Rect2f GroupLayout::boundingBox() const {
 	cv::Rect2f box;
-	for(const auto& question : questions_) {
-		box = box | question.boundingBox();
+	for(const auto& question_ptr : questions_) {
+		box = box | question_ptr->boundingBox();
 	}
 	return box;
 }
@@ -59,14 +59,14 @@ void GroupLayout::setName(const std::string & name) {
 	name_ = name;
 }
 
-void GroupLayout::addQuestion(const QuestionLayout& question) {
+void GroupLayout::addQuestion(const QuestionLayout* question) {
 	//Search through the list of questions to find the position where this one belongs (or until the end of the list is found)
 	size_t i = 0;
-	while(i < numChildren() && question < questions_[i]) {
+	while(i < numChildren() && *question < *questions_[i]) {
 		i++;
 	}
 	//Insert the new question
-	questions_.insert(questions_.begin() + i, question);
+	questions_.insert(questions_.begin() + i, std::make_unique<QuestionLayout>(*question));
 
 	// Set the parent of the new question
 	questionAt(i)->setParent(this);
@@ -76,7 +76,7 @@ void GroupLayout::addQuestion(const QuestionLayout& question) {
 QuestionLayout* GroupLayout::questionAt(size_t index) {
 	QuestionLayout* question = nullptr;
 	if(index < numChildren()) {
-		question = &questions_[index];
+		question = questions_[index].get();
 	}
 	return question;
 }
@@ -84,7 +84,7 @@ QuestionLayout* GroupLayout::questionAt(size_t index) {
 const QuestionLayout* GroupLayout::questionAt(size_t index) const {
 	const QuestionLayout* question = nullptr;
 	if(index < numChildren()) {
-		question = &questions_[index];
+		question = questions_[index].get();
 	}
 	return question;
 }
@@ -104,7 +104,7 @@ void GroupLayout::refreshQuestionNumbers() {
 int GroupLayout::minQuestionNumber() const {
 	int min = -1;
 	if(numChildren() > 0) {
-		min = questions_[0].getQuestionNumber();
+		min = questions_[0]->getQuestionNumber();
 	}
 	return min;
 }
@@ -112,13 +112,9 @@ int GroupLayout::minQuestionNumber() const {
 int GroupLayout::maxQuestionNumber() const {
 	int max = -1;
 	if(numChildren() > 0) {
-		max = questions_[numChildren() - 1].getQuestionNumber();
+		max = questions_[numChildren() - 1]->getQuestionNumber();
 	}
 	return max;
-}
-
-const std::vector<QuestionLayout>& GroupLayout::allQuestions() const {
-	return questions_;
 }
 
 SheetLayoutElement* GroupLayout::getParent() const {

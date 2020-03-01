@@ -14,8 +14,8 @@ QuestionLayout::QuestionLayout() = default;
 QuestionLayout::~QuestionLayout() = default;
 QuestionLayout::QuestionLayout(const QuestionLayout& other) {
 	questionNumber_ = other.getQuestionNumber();
-	for(const auto& bubble : other.allBubbles()) {
-		addBubble(bubble);
+	for(int i = 0; i < other.numChildren(); i++) {
+		addBubble(other.bubbleAt(i));
 	}
 }
 
@@ -47,8 +47,8 @@ cv::Rect2f QuestionLayout::boundingBox() const {
 	//The bounding box of the question is the union of the bounding boxes for all of the bubbles
 	cv::Rect2f box;
 
-	for(const auto& bubble : bubbles_) {
-		box = box | bubble.boundingBox();
+	for(const auto& bubble_ptr : bubbles_) {
+		box = box | bubble_ptr->boundingBox();
 	}
 
 	return box;
@@ -70,16 +70,16 @@ void QuestionLayout::setQuestionNumber(const int questionNumber) {
 	questionNumber_ = questionNumber;
 }
 
-void QuestionLayout::addBubble(const BubbleLayout& bubble) {
-	bubbles_.push_back(bubble);
+void QuestionLayout::addBubble(const BubbleLayout* bubble) {
+	bubbles_.push_back(std::make_unique<BubbleLayout>(*bubble));
 	//Set the parent of the new bubble to this question
-	bubbles_.back().setParent(this);
+	bubbles_.back()->setParent(this);
 }
 
 BubbleLayout* QuestionLayout::bubbleAt(size_t index) {
 	BubbleLayout* bubble = nullptr;
 	if(index < numChildren()) {
-		bubble = &bubbles_[index];
+		bubble = bubbles_[index].get();
 	}
 	return bubble;
 }
@@ -87,7 +87,7 @@ BubbleLayout* QuestionLayout::bubbleAt(size_t index) {
 const BubbleLayout* QuestionLayout::bubbleAt(size_t index) const {
 	const BubbleLayout* bubble = nullptr;
 	if(index < numChildren()) {
-		bubble = &bubbles_[index];
+		bubble = bubbles_[index].get();
 	}
 	return bubble;
 }
@@ -100,15 +100,11 @@ size_t QuestionLayout::numChildren() const {
 	return bubbles_.size();
 }
 
-const std::vector<BubbleLayout>& QuestionLayout::allBubbles() const {
-	return bubbles_;
-}
-
-SheetLayoutElement * QuestionLayout::getParent() const {
+SheetLayoutElement* QuestionLayout::getParent() const {
 	return parent_;
 }
 
-void QuestionLayout::setParent(SheetLayoutElement * parent) {
+void QuestionLayout::setParent(SheetLayoutElement* parent) {
 	parent_ = parent;
 }
 

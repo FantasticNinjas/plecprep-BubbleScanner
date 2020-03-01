@@ -15,8 +15,8 @@ SideLayout::SideLayout(int sideNumber) : sideNumber_(sideNumber) {}
 
 SideLayout::SideLayout(const SideLayout& other) : sideNumber_(other.getSideNumber()) {
 	referenceImage_ = other.getReferenceImageFilename();
-	for(const auto& group : other.allGroups()) {
-		addGroup(group);
+	for(int i = 0; i < other.numChildren(); i++) {
+		addGroup(other.groupAt(i));
 	}
 }
 
@@ -44,21 +44,21 @@ int SideLayout::removeChild(SheetLayoutElement* sheetLayoutElement) {
 cv::Rect2f SideLayout::boundingBox() const {
 	cv::Rect2f box;
 	for(const auto& group : questionGroups_) {
-		box = box | group.boundingBox();
+		box = box | group->boundingBox();
 	}
 	return box;
 }
 
-void SideLayout::addGroup(const GroupLayout& questionGroup) {
-	questionGroups_.push_back(questionGroup);
+void SideLayout::addGroup(const GroupLayout* questionGroup) {
+	questionGroups_.push_back(std::make_unique<GroupLayout>(*questionGroup));
 	//Set the parent of the newly added group to this side layout
-	questionGroups_.back().setParent(this);
+	questionGroups_.back()->setParent(this);
 }
 
 GroupLayout* SideLayout::groupAt(size_t index) {
 	GroupLayout* group = nullptr;
 	if(index < numChildren()) {
-		group = &questionGroups_[index];
+		group = questionGroups_[index].get();
 	}
 	return group;
 }
@@ -66,7 +66,7 @@ GroupLayout* SideLayout::groupAt(size_t index) {
 const GroupLayout* SideLayout::groupAt(size_t index) const {
 	const GroupLayout* group = nullptr;
 	if(index < numChildren()) {
-		group = &questionGroups_[index];
+		group = questionGroups_[index].get();
 	}
 	return group;
 }
@@ -77,10 +77,6 @@ SheetLayoutElement* SideLayout::childAt(size_t index) {
 
 size_t SideLayout::numChildren() const {
 	return questionGroups_.size();
-}
-
-const std::vector<GroupLayout>& SideLayout::allGroups() const {
-	return questionGroups_;
 }
 
 int SideLayout::getSideNumber() const {

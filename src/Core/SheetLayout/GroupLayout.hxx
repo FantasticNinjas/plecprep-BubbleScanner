@@ -50,7 +50,7 @@ public:
 	/// <summary> Add a question layout to this question group </summary>
 	/// <param name="question"> The question to add </param>
 	///
-	void addQuestion(const QuestionLayout& question);
+	void addQuestion(const QuestionLayout* question);
 
 	///
 	/// <summary> Get a pointer to the i'th question in this group </summary>
@@ -95,12 +95,6 @@ public:
 	int maxQuestionNumber() const;
 
 	///
-	/// <summary> Get a vector containing all of the question layouts in this question group (ordered by question number)</summary>
-	/// <note> This method takes O(1) time </note>
-	///
-	const std::vector<QuestionLayout>& allQuestions() const;
-
-	///
 	/// <summary> Get a pointer to the sheet layout element that owns this one, or a null pointer if it is unowned </summary>
 	///
 	SheetLayoutElement* getParent() const;
@@ -114,7 +108,7 @@ public:
 	std::unique_ptr<SheetLayoutElement> clonePtr() const;
 private:
 	std::string name_{};
-	std::vector<QuestionLayout> questions_{};
+	std::vector<std::unique_ptr<QuestionLayout>> questions_{};
 	SheetLayoutElement* parent_{nullptr};
 };
 

@@ -33,7 +33,7 @@ public:
 	/// <summary> Add a question group to this side layout </summary>
 	/// <param name="questionGroup"> The question group to add </param>
 	///
-	void addGroup(const GroupLayout& questionGroup);
+	void addGroup(const GroupLayout* questionGroup);
 
 	///
 	/// <summary> Get a pointer to a question group layout on this side layout </summary>
@@ -59,11 +59,6 @@ public:
 	/// <summary> Get the number of question groups on this side layout </summary>
 	///
 	size_t numChildren() const;
-
-	///
-	/// <summary> Get a vector of all of the question groups on this side layout </summary>
-	///
-	const std::vector<GroupLayout>& allGroups() const;
 
 	///
 	/// <summary> Get the side number for this side layout </summary>
@@ -98,7 +93,7 @@ public:
 	std::unique_ptr<SheetLayoutElement> clonePtr() const;
 private:
 	const int sideNumber_{-1};
-	std::vector<GroupLayout> questionGroups_{};
+	std::vector<std::unique_ptr<GroupLayout>> questionGroups_{};
 	std::string referenceImage_{};
 };
 

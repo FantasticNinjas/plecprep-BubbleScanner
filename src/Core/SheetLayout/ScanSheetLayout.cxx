@@ -33,29 +33,34 @@ void ScanSheetLayout::writeXml(std::ostream& os) {
 		}
 
 		//Add nodes for each question group
-		for(const auto& group : side.allGroups()) {
+		for(size_t i = 0; i < side.numChildren(); i++) {
+			const GroupLayout* group_ptr = side.groupAt(i);
 			pugi::xml_node groupNode = sideNode.append_child("group");
 			//Set group name
-			groupNode.append_attribute("name") = group.getName().c_str();
+			groupNode.append_attribute("name") = group_ptr->getName().c_str();
 
 			//Add questions
-			for(const auto& question : group.allQuestions()) {
+			for(size_t j = 0; j < group_ptr->numChildren(); j++) {
+				const QuestionLayout* question_ptr = group_ptr->questionAt(j);
+
 				pugi::xml_node questionNode = groupNode.append_child("question");
 
-				questionNode.append_attribute("number") = question.getQuestionNumber();
+				questionNode.append_attribute("number") = question_ptr->getQuestionNumber();
 
 				//Add bubbles
-				for(const auto& bubble : question.allBubbles()) {
+				for(size_t k = 0; k < question_ptr->numChildren(); k++) {
+					const BubbleLayout* bubble_ptr = question_ptr->bubbleAt(k);
+
 					pugi::xml_node bubbleNode = questionNode.append_child("bubble");
 
 					//Set bubble content
-					bubbleNode.append_attribute("content") = bubble.getAnswer().c_str();
+					bubbleNode.append_attribute("content") = bubble_ptr->getAnswer().c_str();
 					//Set bubble x coordinate
-					bubbleNode.append_attribute("x") = bubble.getLocation()[0];
+					bubbleNode.append_attribute("x") = bubble_ptr->getLocation()[0];
 					//Set bubble y coordinate
-					bubbleNode.append_attribute("y") = bubble.getLocation()[1];
+					bubbleNode.append_attribute("y") = bubble_ptr->getLocation()[1];
 					//Set bubble radius
-					bubbleNode.append_attribute("r") = bubble.getLocation()[2];
+					bubbleNode.append_attribute("r") = bubble_ptr->getLocation()[2];
 				}
 			}
 		}
@@ -221,15 +226,15 @@ int ScanSheetLayout::readXml(std::istream& is) {
 						}
 
 						//Add bubble to question
-						currentQuestion.addBubble(currentBubble);
+						currentQuestion.addBubble(&currentBubble);
 					}
 
 					//Add question to group
-					currentQuestionGroup.addQuestion(currentQuestion);
+					currentQuestionGroup.addQuestion(&currentQuestion);
 				}
 
 				//Add group to sheet
-				currentSide.addGroup(currentQuestionGroup);
+				currentSide.addGroup(&currentQuestionGroup);
 			}
 			//Add side layout to sheet
 			sheetSides_.push_back(currentSide);
