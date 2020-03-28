@@ -45,8 +45,19 @@ private slots:
 
 	void on_addBubble_clicked();
 	void on_deleteBubbles_clicked();
+	void on_questionFromBubbles_clicked();
+
+	void on_questionNumberEdit_editingFinished();
+
+	void on_groupFromQuestions_clicked();
+
+	void on_groupNameInput_editingFinished();
+
+	void on_groupToSide_clicked();
 
 	void on_boxSelectActivate_clicked();
+
+	void on_saveButton_clicked();
 
 private:
 	Ui::SheetLayoutEditor *ui;
@@ -64,13 +75,6 @@ private:
 	SheetScan editorImage_{};
 	//The zoom level of the editor image
 	float editorImageScale_{1.0};
-
-	//Pointers to the current "focused" layout elements. When multiple layout elements of the same type are selected, one of them is chosen to be the focus. This is the one that is controlled by the editing tools on the left
-	//(except for tools that apply to multiple elements).
-	SideLayout* focusedSideLayout{nullptr};
-	GroupLayout* focusedGroupLayout{nullptr};
-	QuestionLayout* focusedQuestionLayout{nullptr};
-	BubbleLayout* focusedBubbleLayout{nullptr};
 
 	///
 	/// <summary> Retreive the list of layouts from the filesystem and display them in the leyout picker combobox. </summary>
@@ -139,6 +143,14 @@ private:
 	void updateBubbleEditor();
 	void applyBubbleEditor();
 	void resetbubbleEditor();
+
+	void updateQuestionEditor();
+	void applyQuestionEditor();
+	void resetQuestionEditor();
+
+	void updateGroupEditor();
+	void applyGroupEditor();
+	void resetGroupEditor();
 
 	///
 	/// <summary> Removes a sheet layout element. This method does not just unassign the layout element from its parent, but actually completely deletes it. </summary>

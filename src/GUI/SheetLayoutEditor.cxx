@@ -37,6 +37,8 @@ SheetLayoutEditor::SheetLayoutEditor(QWidget *parent) : QDialog(parent) {
 	ui->boxSelectTopBound->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
 	ui->boxSelectBottomBound->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
 
+	ui->questionNumberEdit->setValidator(new QIntValidator(-1, 1000));
+
 	reloadAlgorithmList();
 	//Populate the sheet layout selector
 	if(reloadLayoutList() >= 0) {
@@ -54,10 +56,10 @@ void SheetLayoutEditor::on_layoutChooser_activated(const QString &text) {
 
 void SheetLayoutEditor::on_layoutTree_itemSelectionChanged() {
 	//Reset focused items;
-	focusedSideLayout = nullptr;
-	focusedGroupLayout = nullptr;
-	focusedQuestionLayout = nullptr;
-	focusedBubbleLayout = nullptr;
+	SideLayout* focusedSideLayout = nullptr;
+	GroupLayout* focusedGroupLayout = nullptr;
+	QuestionLayout* focusedQuestionLayout = nullptr;
+	BubbleLayout* focusedBubbleLayout = nullptr;
 
 	//Search through the currently selected items and select one of each type to be the focus
 	for(const auto treeItem : ui->layoutTree->selectedItems()) {
@@ -85,6 +87,8 @@ void SheetLayoutEditor::on_layoutTree_itemSelectionChanged() {
 	reloadEditorImage();
 	//Update toolbox fields
 	updateBubbleEditor();
+	updateQuestionEditor();
+	updateGroupEditor();
 }
 
 void SheetLayoutEditor::on_zoomOutButton_clicked() {
@@ -228,14 +232,117 @@ void SheetLayoutEditor::on_addBubble_clicked() {
 void SheetLayoutEditor::on_deleteBubbles_clicked() {
 
 	//Search through the currently selected items for bubbles to delete
-	QList<QTreeWidgetItem*> itemsToDelete;
+	QList<QTreeWidgetItem*> selectedBubbles;
 	for(const auto& treeItem : ui->layoutTree->selectedItems()) {
 		if(treeItem->type() == static_cast<int>(TreeItemType::BUBBLE_LAYOUT)) {
-			itemsToDelete.append(treeItem);
+			selectedBubbles.append(treeItem);
 		}
 	}
 
-	removeLayoutElements(itemsToDelete);
+	removeLayoutElements(selectedBubbles);
+	buildLayoutTree();
+}
+
+void SheetLayoutEditor::on_questionFromBubbles_clicked() {
+	//Make a new question layout
+	QuestionLayout newQuestion;
+
+	//Search through the currently selected items for bubbles to be added to the new question (and also add them to a QList of said bubbles so they can be removed from wherever they were before.)
+	QList<QTreeWidgetItem*> selectedBubbles;
+	for(const auto& treeItem : ui->layoutTree->selectedItems()) {
+		if(treeItem->type() == static_cast<int>(TreeItemType::BUBBLE_LAYOUT)) {
+			BubbleLayout* bubble_ptr = dynamic_cast<BubbleLayout*>(findLayoutElement(treeItem));
+			if(bubble_ptr == nullptr) {
+				tlOss << "Attempted to add non-existant bubble to new question";
+				qlog.critical(__FILE__, __LINE__, this, tlOss);
+			} else {
+				newQuestion.addBubble(bubble_ptr);
+				selectedBubbles.append(treeItem);
+			}
+		}
+	}
+
+	//Remove bubbles that were added to the new question
+	removeLayoutElements(selectedBubbles);
+
+	//Add new question layout to the list of unowned layout elements
+	unownedLayoutElements.add(newQuestion);
+
+	//rebuild layout tree
+	buildLayoutTree();
+}
+
+void SheetLayoutEditor::on_groupNameInput_editingFinished() {
+	applyGroupEditor();
+}
+
+void SheetLayoutEditor::on_groupToSide_clicked() {
+	//Find the selected side layout
+	SideLayout* focusedSide_ptr = nullptr;
+	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
+		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::SIDE_LAYOUT)) {
+			SideLayout* side_ptr = dynamic_cast<SideLayout*>(findLayoutElement(treeItem_ptr));
+			if(side_ptr != nullptr) {
+				focusedSide_ptr = side_ptr;
+			}
+		}
+	}
+
+	//Find all of the selected question groups and add them to the selected side
+	if(focusedSide_ptr == nullptr) {
+		tlOss << "Attempted to add group layouts to nonexistant side";
+		qlog.critical(__FILE__, __LINE__, this, tlOss);
+	} else {
+		QList<QTreeWidgetItem*> selectedGroups;
+		for(const auto& treeItem : ui->layoutTree->selectedItems()) {
+			if(treeItem->type() == static_cast<int>(TreeItemType::QUESTION_GROUP_LAYOUT)) {
+				GroupLayout* group_ptr = dynamic_cast<GroupLayout*>(findLayoutElement(treeItem));
+				if(group_ptr == nullptr) {
+					tlOss << "Attempted to add non-existant group to new side";
+					qlog.critical(__FILE__, __LINE__, this, tlOss);
+				} else {
+					focusedSide_ptr->addGroup(group_ptr);
+					selectedGroups.append(treeItem);
+				}
+			}
+		}
+
+		//Remove groups that were added to the side from wherever they used to be
+		removeLayoutElements(selectedGroups);
+	}
+	buildLayoutTree();
+}
+
+void SheetLayoutEditor::on_questionNumberEdit_editingFinished() {
+	applyQuestionEditor();
+}
+
+void SheetLayoutEditor::on_groupFromQuestions_clicked() {
+	//Make a new group layout
+	GroupLayout newGroup;
+
+	//Search through the currently selected items for questions to be added to the new group (and also add them to a QList of said questions so they can be removed from wherever they were before.)
+	QList<QTreeWidgetItem*> selectedQuestions;
+	for(const auto& treeItem : ui->layoutTree->selectedItems()) {
+		if(treeItem->type() == static_cast<int>(TreeItemType::QUESTION_LAYOUT)) {
+			QuestionLayout* question_ptr = dynamic_cast<QuestionLayout*>(findLayoutElement(treeItem));
+			if(question_ptr == nullptr) {
+				tlOss << "Attempted to add non-existant question to new group";
+				qlog.critical(__FILE__, __LINE__, this, tlOss);
+			} else {
+				newGroup.addQuestion(question_ptr);
+				selectedQuestions.append(treeItem);
+			}
+		}
+	}
+
+	//Remove questions that were added to the new group
+	removeLayoutElements(selectedQuestions);
+
+	//Add new group to the list of unowned layout elements
+	unownedLayoutElements.add(newGroup);
+
+	//Rebuild layout tree
 	buildLayoutTree();
 }
 
@@ -249,6 +356,28 @@ void SheetLayoutEditor::on_boxSelectActivate_clicked() {
 
 	//Select all bubbles in the box
 	boxSelection(selectionBox);
+}
+
+void SheetLayoutEditor::on_saveButton_clicked() {
+	int status = 0;
+
+	//Find the name of the currently open sheet layout
+	std::string layoutTitle = currentLayout_.getTitle();
+
+	//Check that the layout to load is in the list of layouts.
+	if(layouts_.find(layoutTitle) == layouts_.end()) {
+		status = -1;
+		tlOss << "Unrecognized sheet layout title \"" << layoutTitle << "\".";
+		qlog.critical(__FILE__, __LINE__, this, tlOss);
+	}
+
+	//Write the current state of the sheet layout to the appropriate file
+	if(status >= 0) {
+		QFile sheetLayoutFile(QString::fromStdString(layouts_[layoutTitle]));
+		sheetLayoutFile.open(QIODevice::WriteOnly | QIODevice::Text);
+		currentLayout_.writeXml(FileUtil::getOutputStream(sheetLayoutFile));
+		sheetLayoutFile.close();
+	}
 }
 
 int SheetLayoutEditor::reloadLayoutList() {
@@ -319,6 +448,7 @@ int SheetLayoutEditor::openLayout(const std::string& layoutTitle) {
 			tlOss << "Failed to load sheet layout \"" << layoutTitle << "\" from \"" << layouts_[layoutTitle] << "\"";
 			qlog.critical(__FILE__, __LINE__, this, tlOss);
 		}
+		sheetLayoutFile.close();
 	}
 
 	//Rebuild the layout tree display based on the new scan sheet layout
@@ -577,33 +707,46 @@ int SheetLayoutEditor::reloadAlgorithmList() {
 }
 
 void SheetLayoutEditor::updateBubbleEditor() {
-	int status = 0;
 
-	if(focusedBubbleLayout == nullptr) {
-		tlOss << "Not updating bubble editor because no bubble is selected.";
-		qlog.debug(__FILE__, __LINE__, this, tlOss);
-		resetbubbleEditor();
-		status = 1;
+	resetbubbleEditor();
+
+	//Find the number of selected bubbles as well as the bounding box of all selected bubbles
+	size_t numBubbles = 0;
+	BubbleLayout* focusedBubble_ptr = nullptr;
+	cv::Rect2f boundingBox;
+	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
+		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::BUBBLE_LAYOUT)) {
+			BubbleLayout* bubble_ptr = dynamic_cast<BubbleLayout*>(findLayoutElement(treeItem_ptr));
+			if(bubble_ptr != nullptr) {
+				focusedBubble_ptr = bubble_ptr;
+				boundingBox = boundingBox | bubble_ptr->boundingBox();
+				numBubbles++;
+			}
+		}
 	}
 
-	if(status == 0) {
+	//Update individual bubble fields with bubble-specific information if there is only one bubble selected
+
+	if(numBubbles == 1) {
 		//Set bubble text
-		ui->bubbleTextEdit->setText(QString::fromStdString(focusedBubbleLayout->getAnswer()));
+		ui->bubbleTextEdit->setText(QString::fromStdString(focusedBubble_ptr->getAnswer()));
 		//Set bubble x coordinate
 		std::ostringstream xCoordStream;
-		xCoordStream << focusedBubbleLayout->getLocation()[0];
+		xCoordStream << focusedBubble_ptr->getLocation()[0];
 		ui->bubbleXEdit->setText(QString::fromStdString(xCoordStream.str()));
 		//Set bubble y coordinate
 		std::ostringstream yCoordStream;
-		yCoordStream << focusedBubbleLayout->getLocation()[1];
+		yCoordStream << focusedBubble_ptr->getLocation()[1];
 		ui->bubbleYEdit->setText(QString::fromStdString(yCoordStream.str()));
 		//Set bubble radius
 		std::ostringstream radiusStream;
-		radiusStream << focusedBubbleLayout->getLocation()[2];
+		radiusStream << focusedBubble_ptr->getLocation()[2];
 		ui->bubbleRadiusEdit->setText(QString::fromStdString(radiusStream.str()));
+	}
 
+	if(numBubbles >= 1) {
 		//Set box selection bounds to boundingbox
-		cv::Rect2f boundingBox = focusedBubbleLayout->boundingBox();
+
 		std::ostringstream leftBoundStream;
 		leftBoundStream << boundingBox.x;
 		ui->boxSelectLeftBound->setText(QString::fromStdString(leftBoundStream.str()));
@@ -623,25 +766,35 @@ void SheetLayoutEditor::updateBubbleEditor() {
 }
 
 void SheetLayoutEditor::applyBubbleEditor() {
-	int status = 0;
 
-	if(focusedBubbleLayout == nullptr) {
-		tlOss << "Not updating bubble editor because no bubble is selected.";
-		qlog.debug(__FILE__, __LINE__, this, tlOss);
-		resetbubbleEditor();
-		status = 1;
+	//Update changed fields on all selected bubbles
+
+	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
+		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::BUBBLE_LAYOUT)) {
+			BubbleLayout* bubble_ptr = dynamic_cast<BubbleLayout*>(findLayoutElement(treeItem_ptr));
+			if(bubble_ptr != nullptr) {
+				std::string answer = ui->bubbleTextEdit->text().toStdString();
+				if(!answer.empty()) {
+					bubble_ptr->setAnswer(answer);
+				}
+
+				if(!ui->bubbleXEdit->text().isEmpty()) {
+					bubble_ptr->setCenterX(ui->bubbleXEdit->text().toFloat());
+				}
+
+				if(!ui->bubbleYEdit->text().isEmpty()) {
+					bubble_ptr->setCenterY(ui->bubbleYEdit->text().toFloat());
+				}
+
+				if(!ui->bubbleRadiusEdit->text().isEmpty()) {
+					bubble_ptr->setRadius(ui->bubbleRadiusEdit->text().toFloat());
+				}
+			}
+		}
 	}
 
-	if(status == 0) {
-		//Set fields on focused bubble
-		focusedBubbleLayout->setAnswer(ui->bubbleTextEdit->text().toStdString());
-		focusedBubbleLayout->setCenterX(ui->bubbleXEdit->text().toFloat());
-		focusedBubbleLayout->setCenterY(ui->bubbleYEdit->text().toFloat());
-		focusedBubbleLayout->setRadius(ui->bubbleRadiusEdit->text().toFloat());
-
-		buildLayoutTree();
-		reloadEditorImage();
-	}
+	buildLayoutTree();
+	reloadEditorImage();
 }
 
 void SheetLayoutEditor::resetbubbleEditor() {
@@ -649,6 +802,122 @@ void SheetLayoutEditor::resetbubbleEditor() {
 	ui->bubbleXEdit->setText("");
 	ui->bubbleYEdit->setText("");
 	ui->bubbleRadiusEdit->setText("");
+	ui->boxSelectBottomBound->setText("");
+	ui->boxSelectTopBound->setText("");
+	ui->boxSelectLeftBound->setText("");
+	ui->boxSelectRightBound->setText("");
+}
+
+void SheetLayoutEditor::updateQuestionEditor() {
+	resetQuestionEditor();
+
+	//Find the number of selected questions
+	size_t numQuestions = 0;
+	QuestionLayout* focusedQuestion_ptr = nullptr;
+	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
+		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::QUESTION_LAYOUT)) {
+			QuestionLayout* question_ptr = dynamic_cast<QuestionLayout*>(findLayoutElement(treeItem_ptr));
+			if(question_ptr != nullptr) {
+				focusedQuestion_ptr = question_ptr;
+				numQuestions++;
+			}
+		}
+	}
+
+	//If there is only one selected question, update text boxes to display question-specific information
+	if(numQuestions == 1) {
+		//Only display the question number if it has been set
+		if(focusedQuestion_ptr->getQuestionNumber() >= 0) {
+			ui->questionNumberEdit->setText(QString::number(focusedQuestion_ptr->getQuestionNumber()));
+		}
+	}
+}
+
+void SheetLayoutEditor::applyQuestionEditor() {
+
+	//Find the number of selected questions
+	size_t numQuestions = 0;
+	QuestionLayout* focusedQuestion_ptr = nullptr;
+	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
+		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::QUESTION_LAYOUT)) {
+			QuestionLayout* question_ptr = dynamic_cast<QuestionLayout*>(findLayoutElement(treeItem_ptr));
+			if(question_ptr != nullptr) {
+				focusedQuestion_ptr = question_ptr;
+				numQuestions++;
+			}
+		}
+	}
+
+	//There isn't much of a reason to want to change multiple questions at once, so only update questions if there is only one selected
+
+	if(numQuestions == 1) {
+		//If a question number has been specified set it on the selected question, otherwise reset the question number to its default value.
+		if(ui->questionNumberEdit->text().isEmpty()) {
+			focusedQuestion_ptr->setQuestionNumber(-1);
+		} else {
+			focusedQuestion_ptr->setQuestionNumber(ui->questionNumberEdit->text().toInt());
+		}
+		//Make sure to tell the question's parent that its question number has changed
+		if(focusedQuestion_ptr->getParent() != nullptr) {
+			GroupLayout* parent_ptr = dynamic_cast<GroupLayout*>(focusedQuestion_ptr->getParent());
+			if(parent_ptr != nullptr) {
+				parent_ptr->refreshQuestionNumbers();
+			} else {
+				tlOss << "Failed to re-sort question group";
+				qlog.warning(__FILE__, __LINE__, this, tlOss);
+			}
+		}
+	}
+
+	buildLayoutTree();
+	reloadEditorImage();
+
+}
+
+void SheetLayoutEditor::resetQuestionEditor() {
+	ui->questionNumberEdit->setText("");
+}
+
+void SheetLayoutEditor::updateGroupEditor() {
+	resetGroupEditor();
+
+	//Find the number of selected groups
+	size_t numGroups = 0;
+	GroupLayout* focusedGroup_ptr = nullptr;
+	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
+		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::QUESTION_GROUP_LAYOUT)) {
+			GroupLayout* group_ptr = dynamic_cast<GroupLayout*>(findLayoutElement(treeItem_ptr));
+			if(group_ptr != nullptr) {
+				focusedGroup_ptr = group_ptr;
+				numGroups++;
+			}
+		}
+	}
+
+	//If there is only one selected group, update text boxes to display group-specific information
+	if(numGroups == 1) {
+		ui->groupNameInput->setText(QString::fromStdString(focusedGroup_ptr->getName()));
+	}
+}
+
+void SheetLayoutEditor::applyGroupEditor() {
+	//Iterate overr all selected groups
+	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
+		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::QUESTION_GROUP_LAYOUT)) {
+			GroupLayout* group_ptr = dynamic_cast<GroupLayout*>(findLayoutElement(treeItem_ptr));
+			if(group_ptr != nullptr) {
+				//Update properties of this group layout to reflect changes in the group editor
+				group_ptr->setName(ui->groupNameInput->text().toStdString());
+			}
+		}
+	}
+
+	buildLayoutTree();
+	reloadEditorImage();
+}
+
+void SheetLayoutEditor::resetGroupEditor() {
+	ui->groupNameInput->setText("");
 }
 
 void SheetLayoutEditor::removeLayoutElements(QList<QTreeWidgetItem*>& items) {

@@ -116,7 +116,7 @@ int ScanSheetLayout::readXml(std::istream& is) {
 
 	//Iterate over all of the side layouts on this sheet in the XML
 
-	if(!sheetNode.child("side")) {
+	if(status >= 0 && !sheetNode.child("side")) {
 		status = 1;
 		tlOss << "XML sheet layout does not contain any side layouts.";
 		tlog.warning(__FILE__, __LINE__, tlOss);
@@ -167,10 +167,10 @@ int ScanSheetLayout::readXml(std::istream& is) {
 						currentQuestion.setQuestionNumber(questionNumberAttr.as_int());
 					} else {
 						if(currentQuestionGroup.numChildren() == 0) {
-							currentQuestion.setQuestionNumber(0);
+							currentQuestion.setQuestionNumber(1);
 						} else {
 							//Note that, because the questions in the XML are always sorted, the previous question will always have the current max question number.
-							currentQuestion.setQuestionNumber(currentQuestionGroup.maxQuestionNumber());
+							currentQuestion.setQuestionNumber(currentQuestionGroup.maxQuestionNumber() + 1);
 						}
 					}
 

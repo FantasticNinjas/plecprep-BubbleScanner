@@ -68,14 +68,14 @@
          </widget>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="BubbleToolsPage">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>866</width>
+             <width>849</width>
              <height>363</height>
             </rect>
            </property>
@@ -218,7 +218,7 @@
              <x>0</x>
              <y>0</y>
              <width>866</width>
-             <height>41</height>
+             <height>68</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -232,7 +232,21 @@
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_6">
             <item>
-             <widget class="QPushButton" name="pushButton_4">
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>Question Number</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="questionNumberEdit"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="groupFromQuestions">
               <property name="text">
                <string>Make Group from Selected</string>
               </property>
@@ -245,8 +259,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>324</width>
-             <height>164</height>
+             <width>866</width>
+             <height>80</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -261,31 +275,6 @@
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
              <layout class="QFormLayout" name="formLayout_3">
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_12">
-                <property name="text">
-                 <string>Content Type</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <layout class="QHBoxLayout" name="horizontalLayout">
-                <item>
-                 <widget class="QRadioButton" name="groupTypeText">
-                  <property name="text">
-                   <string>Text Input</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QRadioButton" name="groupTypeQuestions">
-                  <property name="text">
-                   <string>Seperate Questions</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_11">
                 <property name="text">
@@ -296,27 +285,10 @@
               <item row="2" column="1">
                <widget class="QLineEdit" name="groupNameInput"/>
               </item>
-              <item row="4" column="0">
-               <widget class="QPushButton" name="normalizeBubbles">
-                <property name="text">
-                 <string>Normalize Bubbles</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QLineEdit" name="normalBubbleRadius"/>
-              </item>
              </layout>
             </item>
             <item>
-             <widget class="QPushButton" name="addQuestions">
-              <property name="text">
-               <string>Add Questions to Group</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="addGroup">
+             <widget class="QPushButton" name="groupToSide">
               <property name="text">
                <string>Add Group to Side</string>
               </property>
@@ -329,8 +301,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>280</width>
-             <height>194</height>
+             <width>866</width>
+             <height>223</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -372,47 +344,8 @@
                <string>Automated Image Processing</string>
               </property>
               <layout class="QGridLayout" name="gridLayout">
-               <item row="0" column="0">
-                <widget class="QPushButton" name="alignBackgroundButton">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="text">
-                  <string>Align Background</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLabel" name="label">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="text">
-                  <string>Using Algorithm</string>
-                 </property>
-                </widget>
-               </item>
                <item row="0" column="2">
                 <widget class="QComboBox" name="alignmentAlgoChooser"/>
-               </item>
-               <item row="1" column="0">
-                <widget class="QPushButton" name="recognizeCirclesButton">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="text">
-                  <string>Recognize Circles</string>
-                 </property>
-                </widget>
                </item>
                <item row="1" column="1">
                 <widget class="QLabel" name="label_2">
@@ -427,10 +360,56 @@
                  </property>
                 </widget>
                </item>
+               <item row="0" column="0">
+                <widget class="QPushButton" name="alignBackgroundButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Align Background</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QPushButton" name="recognizeCirclesButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Recognize Circles</string>
+                 </property>
+                </widget>
+               </item>
                <item row="1" column="2">
                 <widget class="QComboBox" name="circleAlgoPicker"/>
                </item>
+               <item row="0" column="1">
+                <widget class="QLabel" name="label">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Using Algorithm</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="saveButton">
+              <property name="text">
+               <string>Save Sheet Layout</string>
+              </property>
              </widget>
             </item>
            </layout>

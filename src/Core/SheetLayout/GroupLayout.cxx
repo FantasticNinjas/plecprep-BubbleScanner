@@ -62,7 +62,7 @@ void GroupLayout::setName(const std::string & name) {
 void GroupLayout::addQuestion(const QuestionLayout* question) {
 	//Search through the list of questions to find the position where this one belongs (or until the end of the list is found)
 	size_t i = 0;
-	while(i < numChildren() && *question < *questions_[i]) {
+	while(i < numChildren() && *question > *questions_[i]) {
 		i++;
 	}
 	//Insert the new question
@@ -98,7 +98,7 @@ size_t GroupLayout::numChildren() const {
 }
 
 void GroupLayout::refreshQuestionNumbers() {
-	std::sort(questions_.begin(), questions_.end());
+	std::sort(questions_.begin(), questions_.end(), CompareQuestionPtr());
 }
 
 int GroupLayout::minQuestionNumber() const {

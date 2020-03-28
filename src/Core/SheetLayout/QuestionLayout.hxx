@@ -102,3 +102,8 @@ private:
 	SheetLayoutElement* parent_{nullptr};
 };
 
+//Predicate used to sort unique_ptrs to QuestionLayouts
+struct CompareQuestionPtr {
+	bool operator()(const std::unique_ptr<QuestionLayout>& lhs, const std::unique_ptr<QuestionLayout>& rhs);
+};
+

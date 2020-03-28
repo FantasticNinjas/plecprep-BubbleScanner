@@ -119,3 +119,7 @@ bool QuestionLayout::operator<(const QuestionLayout & rhs) const {
 bool QuestionLayout::operator>(const QuestionLayout & rhs) const {
 	return questionNumber_ > rhs.getQuestionNumber();
 }
+
+bool CompareQuestionPtr::operator()(const std::unique_ptr<QuestionLayout>& lhs, const std::unique_ptr<QuestionLayout>& rhs) {
+	return *lhs < *rhs;
+}
