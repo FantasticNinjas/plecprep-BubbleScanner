@@ -116,7 +116,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\SheetLayout\BubbleLayout.cxx" />
-    <ClCompile Include="src\GUI\FileUtil.cxx" />
     <ClCompile Include="src\Core\SheetLayout\GroupLayout.cxx" />
     <ClCompile Include="src\Core\SheetLayout\LayoutElementContainer.cxx" />
     <ClCompile Include="src\Core\SheetLayout\QuestionLayout.cxx" />
@@ -149,7 +148,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\SheetLayout\BubbleLayout.hxx" />
-    <ClInclude Include="src\GUI\FileUtil.hxx" />
     <ClInclude Include="src\Core\SheetLayout\GroupLayout.hxx" />
     <ClInclude Include="src\Core\SheetLayout\LayoutElementContainer.hxx" />
     <ClInclude Include="src\Core\SheetLayout\QuestionLayout.hxx" />

@@ -4,13 +4,13 @@
 #include <QDebug>
 
 #include <sstream>
+#include <fstream>
 
 #include "SheetLayoutEditor.hxx"
 #include "ui_SheetLayoutEditor.h"
 
 #include "FilenameOracle.hxx"
 #include "QtLogging.hxx"
-#include "FileUtil.hxx"
 
 namespace {
 	std::ostringstream tlOss;
@@ -373,10 +373,10 @@ void SheetLayoutEditor::on_saveButton_clicked() {
 
 	//Write the current state of the sheet layout to the appropriate file
 	if(status >= 0) {
-		QFile sheetLayoutFile(QString::fromStdString(layouts_[layoutTitle]));
-		sheetLayoutFile.open(QIODevice::WriteOnly | QIODevice::Text);
-		currentLayout_.writeXml(FileUtil::getOutputStream(sheetLayoutFile));
-		sheetLayoutFile.close();
+		QFileInfo sheetLayoutFile(QString::fromStdString(layouts_[layoutTitle]));
+		std::ofstream sheetLayoutStream(sheetLayoutFile.absoluteFilePath().toStdString());
+		currentLayout_.writeXml(sheetLayoutStream);
+		sheetLayoutStream.close();
 	}
 }
 
@@ -397,12 +397,11 @@ int SheetLayoutEditor::reloadLayoutList() {
 	//Get the title of each sheet layout in the list and add it to the drop down menu as well as the list of sheet layouts
 	for(const auto& fileInfo : layoutFiles) {
 		//Open the scan sheet layout file for reading
-		QFile currentLayoutFile(fileInfo.absoluteFilePath());
-		currentLayoutFile.open(QIODevice::ReadOnly | QIODevice::Text);
+		std::ifstream sheetLayoutStream(fileInfo.absoluteFilePath().toStdString());
 		
 		//Read the sheet layout file into a scan sheet layout
 		ScanSheetLayout currentLayout;
-		if(currentLayout.readXml(FileUtil::getInputStream(currentLayoutFile)) < 0) {
+		if(currentLayout.readXml(sheetLayoutStream) < 0) {
 			tlOss << "Failed to read sheet layout file \"" << fileInfo.fileName().toStdString() << "\"";
 			qlog.warning(__FILE__, __LINE__, this, tlOss);
 		} else {
@@ -411,6 +410,7 @@ int SheetLayoutEditor::reloadLayoutList() {
 			ui->layoutChooser->addItem(QString::fromStdString(layoutTitle));
 			layouts_[layoutTitle] = fileInfo.absoluteFilePath().toStdString();
 		}
+		sheetLayoutStream.close();
 	}
 
 	//Add new sheet layout option to the list.
@@ -441,14 +441,14 @@ int SheetLayoutEditor::openLayout(const std::string& layoutTitle) {
 
 	//Load the sheet layout
 	if(status >= 0) {
-		QFile sheetLayoutFile(QString::fromStdString(layouts_[layoutTitle]));
-		sheetLayoutFile.open(QIODevice::ReadOnly | QIODevice::Text);
-		if(currentLayout_.readXml(FileUtil::getInputStream(sheetLayoutFile)) < 0) {
+		QFileInfo sheetLayoutFile(QString::fromStdString(layouts_[layoutTitle]));
+		std::ifstream sheetLayoutStream(sheetLayoutFile.absoluteFilePath().toStdString());
+		if(currentLayout_.readXml(sheetLayoutStream) < 0) {
 			status = -1;
 			tlOss << "Failed to load sheet layout \"" << layoutTitle << "\" from \"" << layouts_[layoutTitle] << "\"";
 			qlog.critical(__FILE__, __LINE__, this, tlOss);
 		}
-		sheetLayoutFile.close();
+		sheetLayoutStream.close();
 	}
 
 	//Rebuild the layout tree display based on the new scan sheet layout

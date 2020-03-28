@@ -63,31 +63,28 @@
     <ClCompile Include="src\Core\TextLogging.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SheetLayoutElement.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BubbleLayout.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="QuestionLayout.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GroupLayout.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SideLayout.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ScanSheetLayout.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Core\SheetScan.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LayoutElementContainer.cxx">
+    <ClCompile Include="src\Core\SheetLayout\BubbleLayout.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileUtil.cxx">
+    <ClCompile Include="src\Core\SheetLayout\GroupLayout.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\SheetLayout\LayoutElementContainer.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\SheetLayout\QuestionLayout.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\SheetLayout\ScanSheetLayout.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\SheetLayout\SheetLayoutElement.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\SheetLayout\SideLayout.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -137,31 +134,28 @@
     <ClInclude Include="src\Core\TextLogging.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SheetLayoutElement.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BubbleLayout.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="QuestionLayout.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GroupLayout.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SideLayout.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ScanSheetLayout.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Core\SheetScan.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LayoutElementContainer.hxx">
+    <ClInclude Include="src\Core\SheetLayout\BubbleLayout.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FileUtil.hxx">
+    <ClInclude Include="src\Core\SheetLayout\GroupLayout.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\SheetLayout\LayoutElementContainer.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\SheetLayout\QuestionLayout.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\SheetLayout\ScanSheetLayout.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\SheetLayout\SheetLayoutElement.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\SheetLayout\SideLayout.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
