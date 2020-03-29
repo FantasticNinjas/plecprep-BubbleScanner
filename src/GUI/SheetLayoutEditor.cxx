@@ -25,10 +25,10 @@ SheetLayoutEditor::SheetLayoutEditor(QWidget *parent) : QDialog(parent) {
 	ui->imageScrollArea->setWidget(ui->imageLabel);
 	//Make the image viewer background dark.
 	ui->imageScrollArea->setBackgroundRole(QPalette::Dark);
-	//Populate lists of available image processing algorithms (under Sheet Layout Tools)
 
-	//Set property editors (such as bubble x position) to only accept numbers
-	ui->bubbleRadiusEdit->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
+	//Set validators text fields that should only accept numbers
+	ui->bubbleWidthEdit->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
+	ui->bubbleHeightEdit->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
 	ui->bubbleXEdit->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
 	ui->bubbleYEdit->setValidator(new QDoubleValidator(0.0, 10.0, 20, this));
 
@@ -39,6 +39,7 @@ SheetLayoutEditor::SheetLayoutEditor(QWidget *parent) : QDialog(parent) {
 
 	ui->questionNumberEdit->setValidator(new QIntValidator(-1, 1000));
 
+	//Populate lists of available image processing algorithms (under Sheet Layout Tools)
 	reloadAlgorithmList();
 	//Populate the sheet layout selector
 	if(reloadLayoutList() >= 0) {
@@ -195,10 +196,15 @@ void SheetLayoutEditor::on_recognizeCirclesButton_clicked() {
 		}
 	}
 
+	//Create a bubble layout for each circle found
 	if(status == 0) {
 		for(const auto& circle : circles) {
 			BubbleLayout bubble;
-			bubble.setLocation(circle);
+			//Set the coordinates for the new bubble based on the circle
+			bubble.setLeftEdge(circle[0] - circle[2]);
+			bubble.setTopEdge(circle[1] - circle[2]);
+			bubble.setRightEdge(circle[0] + circle[2]);
+			bubble.setBottomEdge(circle[1] + circle[2]);
 			unownedLayoutElements.add(bubble);
 		}
 		buildLayoutTree();
@@ -219,7 +225,11 @@ void SheetLayoutEditor::on_bubbleYEdit_editingFinished() {
 	applyBubbleEditor();
 }
 
-void SheetLayoutEditor::on_bubbleRadiusEdit_editingFinished() {
+void SheetLayoutEditor::on_bubbleWidthEdit_editingFinished() {
+	applyBubbleEditor();
+}
+
+void SheetLayoutEditor::on_bubbleHeightEdit_editingFinished() {
 	applyBubbleEditor();
 }
 
@@ -561,7 +571,7 @@ void SheetLayoutEditor::annotateEditorImage() {
 			if(item->type() == (int)TreeItemType::BUBBLE_LAYOUT) {
 				BubbleLayout* bubble = dynamic_cast<BubbleLayout*>(findLayoutElement(item));
 				if(bubble != nullptr) {
-					editorImage_.annotateCircle(bubble->getLocation(), color, 2);
+					editorImage_.annotateRect(bubble->boundingBox(), color, 2);
 				}
 			}
 		}
@@ -728,40 +738,25 @@ void SheetLayoutEditor::updateBubbleEditor() {
 	//Update individual bubble fields with bubble-specific information if there is only one bubble selected
 
 	if(numBubbles == 1) {
-		//Set bubble text
+		//Display bubble text
 		ui->bubbleTextEdit->setText(QString::fromStdString(focusedBubble_ptr->getAnswer()));
-		//Set bubble x coordinate
-		std::ostringstream xCoordStream;
-		xCoordStream << focusedBubble_ptr->getLocation()[0];
-		ui->bubbleXEdit->setText(QString::fromStdString(xCoordStream.str()));
-		//Set bubble y coordinate
-		std::ostringstream yCoordStream;
-		yCoordStream << focusedBubble_ptr->getLocation()[1];
-		ui->bubbleYEdit->setText(QString::fromStdString(yCoordStream.str()));
-		//Set bubble radius
-		std::ostringstream radiusStream;
-		radiusStream << focusedBubble_ptr->getLocation()[2];
-		ui->bubbleRadiusEdit->setText(QString::fromStdString(radiusStream.str()));
+		//Display bubble x coordinate
+		ui->bubbleXEdit->setText(QString::number(focusedBubble_ptr->getCenterX()));
+		//Display bubble y coordinate
+		ui->bubbleYEdit->setText(QString::number(focusedBubble_ptr->getCenterY()));
+		//Display bubble width
+		ui->bubbleWidthEdit->setText(QString::number(focusedBubble_ptr->getWidth()));
+		//Display bubble height
+		ui->bubbleHeightEdit->setText(QString::number(focusedBubble_ptr->getHeight()));
 	}
 
 	if(numBubbles >= 1) {
 		//Set box selection bounds to boundingbox
 
-		std::ostringstream leftBoundStream;
-		leftBoundStream << boundingBox.x;
-		ui->boxSelectLeftBound->setText(QString::fromStdString(leftBoundStream.str()));
-
-		std::ostringstream rightBoundStream;
-		rightBoundStream << boundingBox.x + boundingBox.width;
-		ui->boxSelectRightBound->setText(QString::fromStdString(rightBoundStream.str()));
-
-		std::ostringstream topBoundStream;
-		topBoundStream << boundingBox.y;
-		ui->boxSelectTopBound->setText(QString::fromStdString(topBoundStream.str()));
-
-		std::ostringstream bottomBoundStream;
-		bottomBoundStream << boundingBox.y + boundingBox.height;
-		ui->boxSelectBottomBound->setText(QString::fromStdString(bottomBoundStream.str()));
+		ui->boxSelectLeftBound->setText(QString::number(boundingBox.x));
+		ui->boxSelectRightBound->setText(QString::number(boundingBox.x + boundingBox.width));
+		ui->boxSelectTopBound->setText(QString::number(boundingBox.y));
+		ui->boxSelectBottomBound->setText(QString::number(boundingBox.y + boundingBox.height));
 	}
 }
 
@@ -786,8 +781,12 @@ void SheetLayoutEditor::applyBubbleEditor() {
 					bubble_ptr->setCenterY(ui->bubbleYEdit->text().toFloat());
 				}
 
-				if(!ui->bubbleRadiusEdit->text().isEmpty()) {
-					bubble_ptr->setRadius(ui->bubbleRadiusEdit->text().toFloat());
+				if(!ui->bubbleWidthEdit->text().isEmpty()) {
+					bubble_ptr->setWidth(ui->bubbleWidthEdit->text().toFloat());
+				}
+
+				if(!ui->bubbleHeightEdit->text().isEmpty()) {
+					bubble_ptr->setHeight(ui->bubbleHeightEdit->text().toFloat());
 				}
 			}
 		}
@@ -801,7 +800,8 @@ void SheetLayoutEditor::resetbubbleEditor() {
 	ui->bubbleTextEdit->setText("");
 	ui->bubbleXEdit->setText("");
 	ui->bubbleYEdit->setText("");
-	ui->bubbleRadiusEdit->setText("");
+	ui->bubbleHeightEdit->setText("");
+	ui->bubbleWidthEdit->setText("");
 	ui->boxSelectBottomBound->setText("");
 	ui->boxSelectTopBound->setText("");
 	ui->boxSelectLeftBound->setText("");

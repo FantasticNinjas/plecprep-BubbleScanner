@@ -55,12 +55,14 @@ void ScanSheetLayout::writeXml(std::ostream& os) {
 
 					//Set bubble content
 					bubbleNode.append_attribute("content") = bubble_ptr->getAnswer().c_str();
-					//Set bubble x coordinate
-					bubbleNode.append_attribute("x") = bubble_ptr->getLocation()[0];
-					//Set bubble y coordinate
-					bubbleNode.append_attribute("y") = bubble_ptr->getLocation()[1];
-					//Set bubble radius
-					bubbleNode.append_attribute("r") = bubble_ptr->getLocation()[2];
+					//Set bubble left bound
+					bubbleNode.append_attribute("left") = bubble_ptr->getLeftEdge();
+					//Set bubble top bound
+					bubbleNode.append_attribute("top") = bubble_ptr->getTopEdge();
+					//Set bubble right bound
+					bubbleNode.append_attribute("right") = bubble_ptr->getRightEdge();
+					//Set bubble bottom bound
+					bubbleNode.append_attribute("bottom") = bubble_ptr->getBottomEdge();
 				}
 			}
 		}
@@ -195,33 +197,43 @@ int ScanSheetLayout::readXml(std::istream& is) {
 							tlog.critical(__FILE__, __LINE__, tlOss);
 						}
 
-						//Set bubble x coord
-						pugi::xml_attribute bubbleXcoordAttr = bubbleNode.attribute("x");
-						if(bubbleXcoordAttr) {
-							currentBubble.setCenterX(bubbleXcoordAttr.as_float(-1.0));
+						//Set bubble left bound
+						pugi::xml_attribute bubbleLeftAttr = bubbleNode.attribute("left");
+						if(bubbleLeftAttr) {
+							currentBubble.setLeftEdge(bubbleLeftAttr.as_float(-1.0));
 						} else {
 							status = -1;
-							tlOss << "Question " << currentQuestion.getQuestionNumber() << " in \"" << currentQuestionGroup.getName() << "\" has a bubble that does not specify its x coordinate";
+							tlOss << "Question " << currentQuestion.getQuestionNumber() << " in \"" << currentQuestionGroup.getName() << "\" has a bubble that does not specify its left coordinate";
 							tlog.critical(__FILE__, __LINE__, tlOss);
 						}
 
-						//Set bubble y coord
-						pugi::xml_attribute bubbleYcoordAttr = bubbleNode.attribute("y");
-						if(bubbleYcoordAttr) {
-							currentBubble.setCenterY(bubbleYcoordAttr.as_float(-1.0));
+						//Set bubble top bound
+						pugi::xml_attribute bubbleTopAttr = bubbleNode.attribute("top");
+						if(bubbleTopAttr) {
+							currentBubble.setTopEdge(bubbleTopAttr.as_float(-1.0));
 						} else {
 							status = -1;
-							tlOss << "Question " << currentQuestion.getQuestionNumber() << " in \"" << currentQuestionGroup.getName() << "\" has a bubble that does not specify its y coordinate";
+							tlOss << "Question " << currentQuestion.getQuestionNumber() << " in \"" << currentQuestionGroup.getName() << "\" has a bubble that does not specify its top coordinate";
 							tlog.critical(__FILE__, __LINE__, tlOss);
 						}
 
-						//Set bubble radius
-						pugi::xml_attribute bubbleRadiusAttr = bubbleNode.attribute("r");
-						if(bubbleRadiusAttr) {
-							currentBubble.setRadius(bubbleRadiusAttr.as_float(-1.0));
+						//Set bubble right bound
+						pugi::xml_attribute bubbleRightAttr = bubbleNode.attribute("right");
+						if(bubbleRightAttr) {
+							currentBubble.setRightEdge(bubbleRightAttr.as_float(-1.0));
 						} else {
 							status = -1;
-							tlOss << "Question " << currentQuestion.getQuestionNumber() << " in \"" << currentQuestionGroup.getName() << "\" has a bubble that does not specify its radius";
+							tlOss << "Question " << currentQuestion.getQuestionNumber() << " in \"" << currentQuestionGroup.getName() << "\" has a bubble that does not specify its right coordinate";
+							tlog.critical(__FILE__, __LINE__, tlOss);
+						}
+
+						//Set bubble bottom bound
+						pugi::xml_attribute bubbleBottomAttr = bubbleNode.attribute("bottom");
+						if(bubbleBottomAttr) {
+							currentBubble.setBottomEdge(bubbleBottomAttr.as_float(-1.0));
+						} else {
+							status = -1;
+							tlOss << "Question " << currentQuestion.getQuestionNumber() << " in \"" << currentQuestionGroup.getName() << "\" has a bubble that does not specify its bottom coordinate";
 							tlog.critical(__FILE__, __LINE__, tlOss);
 						}
 

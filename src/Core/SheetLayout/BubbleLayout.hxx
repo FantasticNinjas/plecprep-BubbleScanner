@@ -49,33 +49,98 @@ public:
 	const std::string& getAnswer() const;
 
 	///
-	/// <summary> Set the center position and the radius of the bubble (in normalized coordinates) </summary>
+	/// <summary> Set the location and dimensions of the bubble on the page (in normalized coordinates) </summary>
+	/// <param name=location> A rectangle that exactly surrounds the bubble at its new coordinates </param>
 	///
-	void setLocation(const cv::Vec3f& location);
+	void setCoordinates(const cv::Rect2f& coordinates);
 
 	///
-	/// <summary> Set the x coordinate for the center point of the bubble (in normalized coordinates) </summary>
+	/// <summary> Move the left edge of this bubble on the page </summary>
+	/// <param name="x"> The new coordinate for the left edge of this bubble (in normalized coordinates) </param>
+	///
+	void setLeftEdge(float x);
+
+	///
+	/// <summary> Move the top edge of this bubble on the page </summary>
+	/// <param name="y"> The new coordinate for the top edge of this bubble (in normalized coordinates) </param>
+	///
+	void setTopEdge(float y);
+
+	///
+	/// <summary> Move the right edge of this bubble on the page </summary>
+	/// <param name="x"> The new coordinate for the right edge of this bubble (in normalized coordinates) </param>
+	///
+	void setRightEdge(float x);
+
+	///
+	/// <summary> Move the bottom edge of this bubble on the page </summary>
+	/// <param name="y"> The new coordinate for the bottom edge of this bubble (in normalized coordinates) </param>
+	///
+	void setBottomEdge(float y);
+
+	///
+	/// <summary> Move the bubble horrizontally to be centered at a specified position </summary>
+	/// <param name="x"> The new x coordinate of the center of the bubble (in normalized coordinates </summary>
 	///
 	void setCenterX(float x);
 
 	///
-	/// <summary> Set the y coordinate for the center point of the bubble (in normalized coordinates) </summary>
+	/// <summary> Move the bubble vertically to be centered at a specified position </summary>
+	/// <param name="x"> The new y coordinate of the center of the bubble (in normalized coordinates </summary>
 	///
 	void setCenterY(float y);
 
 	///
-	/// <summary> Set the center point of the  bubble (in normalized coordinates) </summary>
+	/// <summary> Adjust the width of this bubble, keeping the center stationary </summary>
+	/// <param name="w"> The new width of the bubble </param>
 	///
-	void setCenter(const cv::Point2f& center);
+	void setWidth(float w);
 
 	///
-	/// <summary> Set the 
-	void setRadius(float r);
+	/// <summary> Adjust the height of this bubble, keeping the center stationary </summary>
+	/// <param name="h"> The new height of the bubble </param>
+	///
+	void setHeight(float h);
 
 	///
-	/// <summary> Get the center position and the radius of the bubble (in normalized coordinates) </summary>
+	/// <summary> Get the coordinate for the left edge of this bubble </summary>
 	///
-	const cv::Vec3f& getLocation() const;
+	float getLeftEdge() const;
+
+	///
+	/// <summary> Get the coordinate for the top edge of this bubble </summary>
+	///
+	float getTopEdge() const;
+
+	///
+	/// <summary> Get the coordinate for the right edge of this bubble </summary>
+	///
+	float getRightEdge() const;
+
+	///
+	/// <summary> Get the coordinate for the bottom edge of this bubble </summary>
+	///
+	float getBottomEdge() const;
+
+	///
+	/// <summary> Get the X coordinate of the center of the bubble (in normalized coordinates </summary>
+	///
+	float getCenterX() const;
+
+	///
+	/// <summary> Get the Y coordinate of the center of the bubble (in normalized coordinates </summary>
+	///
+	float getCenterY() const;
+
+	///
+	/// <summary> Get the width of this bubble </summary>
+	///
+	float getWidth() const;
+
+	///
+	/// <summary> Get the height of this bubble </summary>
+	///
+	float getHeight() const;
 
 	///
 	/// <summary> Get a pointer to the sheet layout element that owns this one, or a null pointer if it is unowned </summary>
@@ -92,7 +157,7 @@ public:
 
 private:
 	std::string answer_{};
-	cv::Vec3f location_{};
+	cv::Rect2f coordinates_{};
 	SheetLayoutElement* parent_{nullptr};
 };
 

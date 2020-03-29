@@ -41,7 +41,8 @@ private slots:
 	void on_bubbleTextEdit_editingFinished();
 	void on_bubbleXEdit_editingFinished();
 	void on_bubbleYEdit_editingFinished();
-	void on_bubbleRadiusEdit_editingFinished();
+	void on_bubbleWidthEdit_editingFinished();
+	void on_bubbleHeightEdit_editingFinished();
 
 	void on_addBubble_clicked();
 	void on_deleteBubbles_clicked();

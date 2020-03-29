@@ -68,7 +68,7 @@
          </widget>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>2</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="BubbleToolsPage">
            <property name="geometry">
@@ -76,7 +76,7 @@
              <x>0</x>
              <y>0</y>
              <width>849</width>
-             <height>363</height>
+             <height>388</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -124,12 +124,22 @@
               <item row="3" column="0">
                <widget class="QLabel" name="label_6">
                 <property name="text">
-                 <string>Bubble Radius</string>
+                 <string>Bubble Width</string>
                 </property>
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QLineEdit" name="bubbleRadiusEdit"/>
+               <widget class="QLineEdit" name="bubbleWidthEdit"/>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Bubble Height</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="bubbleHeightEdit"/>
               </item>
              </layout>
             </item>
@@ -217,7 +227,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>866</width>
+             <width>157</width>
              <height>68</height>
             </rect>
            </property>
@@ -301,7 +311,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>866</width>
+             <width>280</width>
              <height>223</height>
             </rect>
            </property>
