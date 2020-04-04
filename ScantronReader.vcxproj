@@ -115,6 +115,8 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Image.cxx" />
+    <ClCompile Include="src\Core\Rectangle.cxx" />
     <ClCompile Include="src\Core\SheetLayout\BubbleLayout.cxx" />
     <ClCompile Include="src\Core\SheetLayout\GroupLayout.cxx" />
     <ClCompile Include="src\Core\SheetLayout\LayoutElementContainer.cxx" />
@@ -147,6 +149,9 @@
     <QtRcc Include="ScantronReader.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Image.hxx" />
+    <ClInclude Include="ImageFilter.hxx" />
+    <ClInclude Include="src\Core\Rectangle.hxx" />
     <ClInclude Include="src\Core\SheetLayout\BubbleLayout.hxx" />
     <ClInclude Include="src\Core\SheetLayout\GroupLayout.hxx" />
     <ClInclude Include="src\Core\SheetLayout\LayoutElementContainer.hxx" />

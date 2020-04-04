@@ -8,13 +8,13 @@ namespace {
 	TextLogging tlog;
 }
 
-std::string SheetLayoutElement::toString() const {
+std::string EasyGrade::SheetLayoutElement::toString() const {
 	std::ostringstream oss;
 	print(oss);
 	return oss.str();
 }
 
-std::ostream& operator<<(std::ostream& os, const SheetLayoutElement& layoutElement) {
+std::ostream& operator<<(std::ostream& os, const EasyGrade::SheetLayoutElement& layoutElement) {
 	layoutElement.print(os);
 	return os;
 }

@@ -1,22 +1,24 @@
 #include "TextLogging.hxx"
 #include "GroupLayout.hxx"
 
+#include <algorithm>
+
 namespace {
 	static std::ostringstream tlOss;
 	static TextLogging tlog;
 }
 
-GroupLayout::GroupLayout() = default;
-GroupLayout::~GroupLayout() = default;
+EasyGrade::GroupLayout::GroupLayout() = default;
+EasyGrade::GroupLayout::~GroupLayout() = default;
 
-GroupLayout::GroupLayout(const GroupLayout& other) {
+EasyGrade::GroupLayout::GroupLayout(const GroupLayout& other) {
 	name_ = other.getName();
 	for(int i = 0; i < other.numChildren(); i++) {
 		addQuestion(other.questionAt(i));
 	}
 }
 
-int GroupLayout::removeChild(SheetLayoutElement * sheetLayoutElement) {
+int EasyGrade::GroupLayout::removeChild(SheetLayoutElement * sheetLayoutElement) {
 	//Status starts at 1 and then if something gets deleted it is changed to 0
 	int status = 1;
 	//Iterate over all of the questions in reverse order (so that deletions don't change the indices of children that haven't been checked yet
@@ -35,15 +37,15 @@ int GroupLayout::removeChild(SheetLayoutElement * sheetLayoutElement) {
 	return status;
 }
 
-cv::Rect2f GroupLayout::boundingBox() const {
-	cv::Rect2f box;
+EasyGrade::Rectangle EasyGrade::GroupLayout::boundingBox() const {
+	Rectangle box;
 	for(const auto& question_ptr : questions_) {
-		box = box | question_ptr->boundingBox();
+		box.combineUnion(question_ptr->boundingBox());
 	}
 	return box;
 }
 
-void GroupLayout::print(std::ostream & os) const {
+void EasyGrade::GroupLayout::print(std::ostream & os) const {
 	if(name_.empty()) {
 		os << "New Question Group";
 	} else {
@@ -51,15 +53,15 @@ void GroupLayout::print(std::ostream & os) const {
 	}
 }
 
-const std::string & GroupLayout::getName() const {
+const std::string& EasyGrade::GroupLayout::getName() const {
 	return name_;
 }
 
-void GroupLayout::setName(const std::string & name) {
+void EasyGrade::GroupLayout::setName(const std::string & name) {
 	name_ = name;
 }
 
-void GroupLayout::addQuestion(const QuestionLayout* question) {
+void EasyGrade::GroupLayout::addQuestion(const QuestionLayout* question) {
 	//Search through the list of questions to find the position where this one belongs (or until the end of the list is found)
 	size_t i = 0;
 	while(i < numChildren() && *question > *questions_[i]) {
@@ -73,7 +75,7 @@ void GroupLayout::addQuestion(const QuestionLayout* question) {
 
 }
 
-QuestionLayout* GroupLayout::questionAt(size_t index) {
+EasyGrade::QuestionLayout* EasyGrade::GroupLayout::questionAt(size_t index) {
 	QuestionLayout* question = nullptr;
 	if(index < numChildren()) {
 		question = questions_[index].get();
@@ -81,7 +83,7 @@ QuestionLayout* GroupLayout::questionAt(size_t index) {
 	return question;
 }
 
-const QuestionLayout* GroupLayout::questionAt(size_t index) const {
+const EasyGrade::QuestionLayout* EasyGrade::GroupLayout::questionAt(size_t index) const {
 	const QuestionLayout* question = nullptr;
 	if(index < numChildren()) {
 		question = questions_[index].get();
@@ -89,19 +91,19 @@ const QuestionLayout* GroupLayout::questionAt(size_t index) const {
 	return question;
 }
 
-SheetLayoutElement* GroupLayout::childAt(size_t index) {
+EasyGrade::SheetLayoutElement* EasyGrade::GroupLayout::childAt(size_t index) {
 	return static_cast<SheetLayoutElement*>(questionAt(index));
 }
 
-size_t GroupLayout::numChildren() const {
+size_t EasyGrade::GroupLayout::numChildren() const {
 	return questions_.size();
 }
 
-void GroupLayout::refreshQuestionNumbers() {
+void EasyGrade::GroupLayout::refreshQuestionNumbers() {
 	std::sort(questions_.begin(), questions_.end(), CompareQuestionPtr());
 }
 
-int GroupLayout::minQuestionNumber() const {
+int EasyGrade::GroupLayout::minQuestionNumber() const {
 	int min = -1;
 	if(numChildren() > 0) {
 		min = questions_[0]->getQuestionNumber();
@@ -109,7 +111,7 @@ int GroupLayout::minQuestionNumber() const {
 	return min;
 }
 
-int GroupLayout::maxQuestionNumber() const {
+int EasyGrade::GroupLayout::maxQuestionNumber() const {
 	int max = -1;
 	if(numChildren() > 0) {
 		max = questions_[numChildren() - 1]->getQuestionNumber();
@@ -117,14 +119,14 @@ int GroupLayout::maxQuestionNumber() const {
 	return max;
 }
 
-SheetLayoutElement* GroupLayout::getParent() const {
+EasyGrade::SheetLayoutElement* EasyGrade::GroupLayout::getParent() const {
 	return parent_;
 }
 
-void GroupLayout::setParent(SheetLayoutElement* parent) {
+void EasyGrade::GroupLayout::setParent(SheetLayoutElement* parent) {
 	parent_ = parent;
 }
 
-std::unique_ptr<SheetLayoutElement> GroupLayout::clonePtr() const {
+std::unique_ptr<EasyGrade::SheetLayoutElement> EasyGrade::GroupLayout::clonePtr() const {
 	return std::make_unique<GroupLayout>(*this);
 }

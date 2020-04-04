@@ -10,16 +10,16 @@ namespace {
 }
 
 
-QuestionLayout::QuestionLayout() = default;
-QuestionLayout::~QuestionLayout() = default;
-QuestionLayout::QuestionLayout(const QuestionLayout& other) {
+EasyGrade::QuestionLayout::QuestionLayout() = default;
+EasyGrade::QuestionLayout::~QuestionLayout() = default;
+EasyGrade::QuestionLayout::QuestionLayout(const QuestionLayout& other) {
 	questionNumber_ = other.getQuestionNumber();
 	for(int i = 0; i < other.numChildren(); i++) {
 		addBubble(other.bubbleAt(i));
 	}
 }
 
-int QuestionLayout::removeChild(SheetLayoutElement* sheetLayoutElement) {
+int EasyGrade::QuestionLayout::removeChild(SheetLayoutElement* sheetLayoutElement) {
 	//Status starts at 1 and then if something gets deleted it is changed to 0
 	int status = 1;
 	//Iterate over all of the bubbles in reverse order (so that deletions don't change the indices of children that haven't been checked yet
@@ -43,18 +43,18 @@ int QuestionLayout::removeChild(SheetLayoutElement* sheetLayoutElement) {
 	return status;
 }
 
-cv::Rect2f QuestionLayout::boundingBox() const {
+EasyGrade::Rectangle EasyGrade::QuestionLayout::boundingBox() const {
 	//The bounding box of the question is the union of the bounding boxes for all of the bubbles
-	cv::Rect2f box;
+	Rectangle box;
 
 	for(const auto& bubble_ptr : bubbles_) {
-		box = box | bubble_ptr->boundingBox();
+		box.combineUnion(bubble_ptr->boundingBox());
 	}
 
 	return box;
 }
 
-void QuestionLayout::print(std::ostream & os) const {
+void EasyGrade::QuestionLayout::print(std::ostream & os) const {
 	if(questionNumber_ < 0) {
 		os << "New Question";
 	} else {
@@ -62,21 +62,21 @@ void QuestionLayout::print(std::ostream & os) const {
 	}
 }
 
-int QuestionLayout::getQuestionNumber() const {
+int EasyGrade::QuestionLayout::getQuestionNumber() const {
 	return questionNumber_;
 }
 
-void QuestionLayout::setQuestionNumber(const int questionNumber) {
+void EasyGrade::QuestionLayout::setQuestionNumber(const int questionNumber) {
 	questionNumber_ = questionNumber;
 }
 
-void QuestionLayout::addBubble(const BubbleLayout* bubble) {
+void EasyGrade::QuestionLayout::addBubble(const BubbleLayout* bubble) {
 	bubbles_.push_back(std::make_unique<BubbleLayout>(*bubble));
 	//Set the parent of the new bubble to this question
 	bubbles_.back()->setParent(this);
 }
 
-BubbleLayout* QuestionLayout::bubbleAt(size_t index) {
+EasyGrade::BubbleLayout* EasyGrade::QuestionLayout::bubbleAt(size_t index) {
 	BubbleLayout* bubble = nullptr;
 	if(index < numChildren()) {
 		bubble = bubbles_[index].get();
@@ -84,7 +84,7 @@ BubbleLayout* QuestionLayout::bubbleAt(size_t index) {
 	return bubble;
 }
 
-const BubbleLayout* QuestionLayout::bubbleAt(size_t index) const {
+const EasyGrade::BubbleLayout* EasyGrade::QuestionLayout::bubbleAt(size_t index) const {
 	const BubbleLayout* bubble = nullptr;
 	if(index < numChildren()) {
 		bubble = bubbles_[index].get();
@@ -92,34 +92,34 @@ const BubbleLayout* QuestionLayout::bubbleAt(size_t index) const {
 	return bubble;
 }
 
-SheetLayoutElement* QuestionLayout::childAt(size_t index) {
+EasyGrade::SheetLayoutElement* EasyGrade::QuestionLayout::childAt(size_t index) {
 	return static_cast<SheetLayoutElement*>(bubbleAt(index));
 }
 
-size_t QuestionLayout::numChildren() const {
+size_t EasyGrade::QuestionLayout::numChildren() const {
 	return bubbles_.size();
 }
 
-SheetLayoutElement* QuestionLayout::getParent() const {
+EasyGrade::SheetLayoutElement* EasyGrade::QuestionLayout::getParent() const {
 	return parent_;
 }
 
-void QuestionLayout::setParent(SheetLayoutElement* parent) {
+void EasyGrade::QuestionLayout::setParent(SheetLayoutElement* parent) {
 	parent_ = parent;
 }
 
-std::unique_ptr<SheetLayoutElement> QuestionLayout::clonePtr() const {
+std::unique_ptr<EasyGrade::SheetLayoutElement> EasyGrade::QuestionLayout::clonePtr() const {
 	return std::make_unique<QuestionLayout>(*this);
 }
 
-bool QuestionLayout::operator<(const QuestionLayout & rhs) const {
+bool EasyGrade::QuestionLayout::operator<(const QuestionLayout & rhs) const {
 	return questionNumber_ < rhs.getQuestionNumber();
 }
 
-bool QuestionLayout::operator>(const QuestionLayout & rhs) const {
+bool EasyGrade::QuestionLayout::operator>(const QuestionLayout & rhs) const {
 	return questionNumber_ > rhs.getQuestionNumber();
 }
 
-bool CompareQuestionPtr::operator()(const std::unique_ptr<QuestionLayout>& lhs, const std::unique_ptr<QuestionLayout>& rhs) {
+bool EasyGrade::CompareQuestionPtr::operator()(const std::unique_ptr<QuestionLayout>& lhs, const std::unique_ptr<QuestionLayout>& rhs) {
 	return *lhs < *rhs;
 }

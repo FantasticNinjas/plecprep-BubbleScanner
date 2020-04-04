@@ -87,6 +87,12 @@
     <ClCompile Include="src\Core\SheetLayout\SideLayout.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Image.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rectangle.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="src\GUI\ScantronReader.hxx">
@@ -156,6 +162,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\SheetLayout\SideLayout.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Image.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageFilter.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rectangle.hxx">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

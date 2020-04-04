@@ -67,10 +67,10 @@ private:
 
 
 	//The current sheet layout being modified
-	ScanSheetLayout currentLayout_{};
+	EasyGrade::ScanSheetLayout currentLayout_{};
 
 	//Stores any layout elements that have been created using the GUI but have not yet been added to a parent
-	LayoutElementContainer unownedLayoutElements{};
+	EasyGrade::LayoutElementContainer unownedLayoutElements{};
 
 	//The reference image showed in the layout editor
 	SheetScan editorImage_{};
@@ -108,7 +108,7 @@ private:
 	/// <param name="layoutElement"> layoutElement The layout element to generate a tree item for </param>
 	/// <param name="parent"> The tree item that should be this item's parent. If this parameter is omitted the item will have no parent.
 	///
-	QTreeWidgetItem* buildTreeWidget(SheetLayoutElement* layoutElement, QTreeWidgetItem* parent = nullptr);
+	QTreeWidgetItem* buildTreeWidget(EasyGrade::SheetLayoutElement* layoutElement, QTreeWidgetItem* parent = nullptr);
 
 	///
 	/// <summary> Open an image file as the editor background image and display it in the editor. </summary>
@@ -120,7 +120,7 @@ private:
 
 	void annotateEditorImage();
 
-	void boxSelection(cv::Rect2f& selectionBox);
+	void boxSelection(const EasyGrade::Rectangle& selectionBox);
 
 	///
 	/// <summary> Reloads the editor background image from the SheetScan in memory. This will make the GUI reflect any changes / image processing that have been applied to the SheetScan. </summary>
@@ -171,5 +171,5 @@ private:
 	///
 	bool isOwned(QTreeWidgetItem *item);
 
-	SheetLayoutElement* findLayoutElement(QTreeWidgetItem* item);
+	EasyGrade::SheetLayoutElement* findLayoutElement(QTreeWidgetItem* item);
 };

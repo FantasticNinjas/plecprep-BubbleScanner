@@ -57,25 +57,25 @@ void SheetLayoutEditor::on_layoutChooser_activated(const QString &text) {
 
 void SheetLayoutEditor::on_layoutTree_itemSelectionChanged() {
 	//Reset focused items;
-	SideLayout* focusedSideLayout = nullptr;
-	GroupLayout* focusedGroupLayout = nullptr;
-	QuestionLayout* focusedQuestionLayout = nullptr;
-	BubbleLayout* focusedBubbleLayout = nullptr;
+	EasyGrade::SideLayout* focusedSideLayout = nullptr;
+	EasyGrade::GroupLayout* focusedGroupLayout = nullptr;
+	EasyGrade::QuestionLayout* focusedQuestionLayout = nullptr;
+	EasyGrade::BubbleLayout* focusedBubbleLayout = nullptr;
 
 	//Search through the currently selected items and select one of each type to be the focus
 	for(const auto treeItem : ui->layoutTree->selectedItems()) {
 		switch(treeItem->type()) {
 		case (int)TreeItemType::BUBBLE_LAYOUT:
-			focusedBubbleLayout = dynamic_cast<BubbleLayout*>(findLayoutElement(treeItem));
+			focusedBubbleLayout = dynamic_cast<EasyGrade::BubbleLayout*>(findLayoutElement(treeItem));
 			break;
 		case (int)TreeItemType::QUESTION_LAYOUT:
-			focusedQuestionLayout = dynamic_cast<QuestionLayout*>(findLayoutElement(treeItem));
+			focusedQuestionLayout = dynamic_cast<EasyGrade::QuestionLayout*>(findLayoutElement(treeItem));
 			break;
 		case (int)TreeItemType::QUESTION_GROUP_LAYOUT:
-			focusedGroupLayout = dynamic_cast<GroupLayout*>(findLayoutElement(treeItem));
+			focusedGroupLayout = dynamic_cast<EasyGrade::GroupLayout*>(findLayoutElement(treeItem));
 			break;
 		case (int)TreeItemType::SIDE_LAYOUT:
-			focusedSideLayout = dynamic_cast<SideLayout*>(findLayoutElement(treeItem));
+			focusedSideLayout = dynamic_cast<EasyGrade::SideLayout*>(findLayoutElement(treeItem));
 			break;
 		}
 	}
@@ -199,7 +199,7 @@ void SheetLayoutEditor::on_recognizeCirclesButton_clicked() {
 	//Create a bubble layout for each circle found
 	if(status == 0) {
 		for(const auto& circle : circles) {
-			BubbleLayout bubble;
+			EasyGrade::BubbleLayout bubble;
 			//Set the coordinates for the new bubble based on the circle
 			bubble.setLeftEdge(circle[0] - circle[2]);
 			bubble.setTopEdge(circle[1] - circle[2]);
@@ -234,7 +234,7 @@ void SheetLayoutEditor::on_bubbleHeightEdit_editingFinished() {
 }
 
 void SheetLayoutEditor::on_addBubble_clicked() {
-	unownedLayoutElements.add(BubbleLayout());
+	unownedLayoutElements.add(EasyGrade::BubbleLayout());
 	buildLayoutTree();
 	reloadEditorImage();
 }
@@ -255,13 +255,13 @@ void SheetLayoutEditor::on_deleteBubbles_clicked() {
 
 void SheetLayoutEditor::on_questionFromBubbles_clicked() {
 	//Make a new question layout
-	QuestionLayout newQuestion;
+	EasyGrade::QuestionLayout newQuestion;
 
 	//Search through the currently selected items for bubbles to be added to the new question (and also add them to a QList of said bubbles so they can be removed from wherever they were before.)
 	QList<QTreeWidgetItem*> selectedBubbles;
 	for(const auto& treeItem : ui->layoutTree->selectedItems()) {
 		if(treeItem->type() == static_cast<int>(TreeItemType::BUBBLE_LAYOUT)) {
-			BubbleLayout* bubble_ptr = dynamic_cast<BubbleLayout*>(findLayoutElement(treeItem));
+			EasyGrade::BubbleLayout* bubble_ptr = dynamic_cast<EasyGrade::BubbleLayout*>(findLayoutElement(treeItem));
 			if(bubble_ptr == nullptr) {
 				tlOss << "Attempted to add non-existant bubble to new question";
 				qlog.critical(__FILE__, __LINE__, this, tlOss);
@@ -288,10 +288,10 @@ void SheetLayoutEditor::on_groupNameInput_editingFinished() {
 
 void SheetLayoutEditor::on_groupToSide_clicked() {
 	//Find the selected side layout
-	SideLayout* focusedSide_ptr = nullptr;
+	EasyGrade::SideLayout* focusedSide_ptr = nullptr;
 	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
 		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::SIDE_LAYOUT)) {
-			SideLayout* side_ptr = dynamic_cast<SideLayout*>(findLayoutElement(treeItem_ptr));
+			EasyGrade::SideLayout* side_ptr = dynamic_cast<EasyGrade::SideLayout*>(findLayoutElement(treeItem_ptr));
 			if(side_ptr != nullptr) {
 				focusedSide_ptr = side_ptr;
 			}
@@ -306,7 +306,7 @@ void SheetLayoutEditor::on_groupToSide_clicked() {
 		QList<QTreeWidgetItem*> selectedGroups;
 		for(const auto& treeItem : ui->layoutTree->selectedItems()) {
 			if(treeItem->type() == static_cast<int>(TreeItemType::QUESTION_GROUP_LAYOUT)) {
-				GroupLayout* group_ptr = dynamic_cast<GroupLayout*>(findLayoutElement(treeItem));
+				EasyGrade::GroupLayout* group_ptr = dynamic_cast<EasyGrade::GroupLayout*>(findLayoutElement(treeItem));
 				if(group_ptr == nullptr) {
 					tlOss << "Attempted to add non-existant group to new side";
 					qlog.critical(__FILE__, __LINE__, this, tlOss);
@@ -329,13 +329,13 @@ void SheetLayoutEditor::on_questionNumberEdit_editingFinished() {
 
 void SheetLayoutEditor::on_groupFromQuestions_clicked() {
 	//Make a new group layout
-	GroupLayout newGroup;
+	EasyGrade::GroupLayout newGroup;
 
 	//Search through the currently selected items for questions to be added to the new group (and also add them to a QList of said questions so they can be removed from wherever they were before.)
 	QList<QTreeWidgetItem*> selectedQuestions;
 	for(const auto& treeItem : ui->layoutTree->selectedItems()) {
 		if(treeItem->type() == static_cast<int>(TreeItemType::QUESTION_LAYOUT)) {
-			QuestionLayout* question_ptr = dynamic_cast<QuestionLayout*>(findLayoutElement(treeItem));
+			EasyGrade::QuestionLayout* question_ptr = dynamic_cast<EasyGrade::QuestionLayout*>(findLayoutElement(treeItem));
 			if(question_ptr == nullptr) {
 				tlOss << "Attempted to add non-existant question to new group";
 				qlog.critical(__FILE__, __LINE__, this, tlOss);
@@ -357,12 +357,12 @@ void SheetLayoutEditor::on_groupFromQuestions_clicked() {
 }
 
 void SheetLayoutEditor::on_boxSelectActivate_clicked() {
-	//Create a cv::Rect2f matching the selection bounds specified in the GUI
-	float leftBound = std::stof(ui->boxSelectLeftBound->text().toStdString());
-	float rightBound = std::stof(ui->boxSelectRightBound->text().toStdString());
-	float topBound = std::stof(ui->boxSelectTopBound->text().toStdString());
-	float bottomBound = std::stof(ui->boxSelectBottomBound->text().toStdString());
-	cv::Rect2f selectionBox(cv::Point2f(leftBound, topBound), cv::Point2f(rightBound, bottomBound));
+	//Create a rectangle matching the selection bounds specified in the GUI
+	EasyGrade::Rectangle selectionBox;
+	selectionBox.setLeftEdge(ui->boxSelectLeftBound->text().toFloat());
+	selectionBox.setRightEdge(ui->boxSelectRightBound->text().toFloat());
+	selectionBox.setTopEdge(ui->boxSelectTopBound->text().toFloat());
+	selectionBox.setBottomEdge(ui->boxSelectBottomBound->text().toFloat());
 
 	//Select all bubbles in the box
 	boxSelection(selectionBox);
@@ -410,7 +410,7 @@ int SheetLayoutEditor::reloadLayoutList() {
 		std::ifstream sheetLayoutStream(fileInfo.absoluteFilePath().toStdString());
 		
 		//Read the sheet layout file into a scan sheet layout
-		ScanSheetLayout currentLayout;
+		EasyGrade::ScanSheetLayout currentLayout;
 		if(currentLayout.readXml(sheetLayoutStream) < 0) {
 			tlOss << "Failed to read sheet layout file \"" << fileInfo.fileName().toStdString() << "\"";
 			qlog.warning(__FILE__, __LINE__, this, tlOss);
@@ -499,17 +499,17 @@ int SheetLayoutEditor::buildLayoutTree() {
 	return status;
 }
 
-QTreeWidgetItem* SheetLayoutEditor::buildTreeWidget(SheetLayoutElement* layoutElement, QTreeWidgetItem* parent) {
+QTreeWidgetItem* SheetLayoutEditor::buildTreeWidget(EasyGrade::SheetLayoutElement* layoutElement, QTreeWidgetItem* parent) {
 
 	//Find the type of this sheet element
 	TreeItemType itemType = TreeItemType::UNKNOWN;
-	if(dynamic_cast<BubbleLayout*>(layoutElement) != nullptr) {
+	if(dynamic_cast<EasyGrade::BubbleLayout*>(layoutElement) != nullptr) {
 		itemType = TreeItemType::BUBBLE_LAYOUT;
-	} else if(dynamic_cast<QuestionLayout*>(layoutElement) != nullptr) {
+	} else if(dynamic_cast<EasyGrade::QuestionLayout*>(layoutElement) != nullptr) {
 		itemType = TreeItemType::QUESTION_LAYOUT;
-	} else if(dynamic_cast<GroupLayout*>(layoutElement) != nullptr) {
+	} else if(dynamic_cast<EasyGrade::GroupLayout*>(layoutElement) != nullptr) {
 		itemType = TreeItemType::QUESTION_GROUP_LAYOUT;
-	} else if(dynamic_cast<SideLayout*>(layoutElement) != nullptr) {
+	} else if(dynamic_cast<EasyGrade::SideLayout*>(layoutElement) != nullptr) {
 		itemType = TreeItemType::SIDE_LAYOUT;
 	}
 
@@ -569,16 +569,18 @@ void SheetLayoutEditor::annotateEditorImage() {
 			//Draw the layout element
 
 			if(item->type() == (int)TreeItemType::BUBBLE_LAYOUT) {
-				BubbleLayout* bubble = dynamic_cast<BubbleLayout*>(findLayoutElement(item));
+				EasyGrade::BubbleLayout* bubble = dynamic_cast<EasyGrade::BubbleLayout*>(findLayoutElement(item));
 				if(bubble != nullptr) {
-					editorImage_.annotateRect(bubble->boundingBox(), color, 2);
+					EasyGrade::Rectangle boundingBox = bubble->boundingBox();
+					cv::Rect2f cvBox(boundingBox.getLeftEdge(), boundingBox.getTopEdge(), boundingBox.getWidth(), boundingBox.getHeight());
+					editorImage_.annotateRect(cvBox, color, 2);
 				}
 			}
 		}
 	}
 }
 
-void SheetLayoutEditor::boxSelection(cv::Rect2f & selectionBox) {
+void SheetLayoutEditor::boxSelection(const EasyGrade::Rectangle& selectionBox) {
 	//Note: This function works by iterating over the unassigned layout elements in the layout tree display, not in the UnassignedLayoutElements instance itself. This is because there is currently a method for
 	//going from an item in the layout tree display to its corrisponding layout element, but not the other way around. This is important because which elements are selected is stored in the layout tree display,
 	//while the positions of elements (and therefore whether they should be selected) are stored in the layout elements themselves, so this method needs both.
@@ -608,12 +610,12 @@ void SheetLayoutEditor::boxSelection(cv::Rect2f & selectionBox) {
 		//Iterate over all unowned layout elements
 		for(int i = 0; i < unassignedElementsItem->childCount(); i++) {
 			QTreeWidgetItem* item = unassignedElementsItem->child(i);
-			SheetLayoutElement* element = findLayoutElement(item);
+			EasyGrade::SheetLayoutElement* element = findLayoutElement(item);
 			if(element == nullptr) {
 				tlOss << "Encountered invalid sheet layout element while performing box selection.";
 				qlog.warning(__FILE__, __LINE__, this, tlOss);
 			} else {
-				if((selectionBox & element->boundingBox()).area() > 0) {
+				if(selectionBox.doesIntersect(element->boundingBox())) {
 					item->setSelected(true);
 				}
 			}
@@ -722,14 +724,14 @@ void SheetLayoutEditor::updateBubbleEditor() {
 
 	//Find the number of selected bubbles as well as the bounding box of all selected bubbles
 	size_t numBubbles = 0;
-	BubbleLayout* focusedBubble_ptr = nullptr;
-	cv::Rect2f boundingBox;
+	EasyGrade::BubbleLayout* focusedBubble_ptr = nullptr;
+	EasyGrade::Rectangle boundingBox;
 	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
 		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::BUBBLE_LAYOUT)) {
-			BubbleLayout* bubble_ptr = dynamic_cast<BubbleLayout*>(findLayoutElement(treeItem_ptr));
+			EasyGrade::BubbleLayout* bubble_ptr = dynamic_cast<EasyGrade::BubbleLayout*>(findLayoutElement(treeItem_ptr));
 			if(bubble_ptr != nullptr) {
 				focusedBubble_ptr = bubble_ptr;
-				boundingBox = boundingBox | bubble_ptr->boundingBox();
+				boundingBox.combineUnion(bubble_ptr->boundingBox());
 				numBubbles++;
 			}
 		}
@@ -753,10 +755,10 @@ void SheetLayoutEditor::updateBubbleEditor() {
 	if(numBubbles >= 1) {
 		//Set box selection bounds to boundingbox
 
-		ui->boxSelectLeftBound->setText(QString::number(boundingBox.x));
-		ui->boxSelectRightBound->setText(QString::number(boundingBox.x + boundingBox.width));
-		ui->boxSelectTopBound->setText(QString::number(boundingBox.y));
-		ui->boxSelectBottomBound->setText(QString::number(boundingBox.y + boundingBox.height));
+		ui->boxSelectLeftBound->setText(QString::number(boundingBox.getLeftEdge()));
+		ui->boxSelectRightBound->setText(QString::number(boundingBox.getRightEdge()));
+		ui->boxSelectTopBound->setText(QString::number(boundingBox.getTopEdge()));
+		ui->boxSelectBottomBound->setText(QString::number(boundingBox.getBottomEdge()));
 	}
 }
 
@@ -766,7 +768,7 @@ void SheetLayoutEditor::applyBubbleEditor() {
 
 	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
 		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::BUBBLE_LAYOUT)) {
-			BubbleLayout* bubble_ptr = dynamic_cast<BubbleLayout*>(findLayoutElement(treeItem_ptr));
+			EasyGrade::BubbleLayout* bubble_ptr = dynamic_cast<EasyGrade::BubbleLayout*>(findLayoutElement(treeItem_ptr));
 			if(bubble_ptr != nullptr) {
 				std::string answer = ui->bubbleTextEdit->text().toStdString();
 				if(!answer.empty()) {
@@ -813,10 +815,10 @@ void SheetLayoutEditor::updateQuestionEditor() {
 
 	//Find the number of selected questions
 	size_t numQuestions = 0;
-	QuestionLayout* focusedQuestion_ptr = nullptr;
+	EasyGrade::QuestionLayout* focusedQuestion_ptr = nullptr;
 	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
 		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::QUESTION_LAYOUT)) {
-			QuestionLayout* question_ptr = dynamic_cast<QuestionLayout*>(findLayoutElement(treeItem_ptr));
+			EasyGrade::QuestionLayout* question_ptr = dynamic_cast<EasyGrade::QuestionLayout*>(findLayoutElement(treeItem_ptr));
 			if(question_ptr != nullptr) {
 				focusedQuestion_ptr = question_ptr;
 				numQuestions++;
@@ -837,10 +839,10 @@ void SheetLayoutEditor::applyQuestionEditor() {
 
 	//Find the number of selected questions
 	size_t numQuestions = 0;
-	QuestionLayout* focusedQuestion_ptr = nullptr;
+	EasyGrade::QuestionLayout* focusedQuestion_ptr = nullptr;
 	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
 		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::QUESTION_LAYOUT)) {
-			QuestionLayout* question_ptr = dynamic_cast<QuestionLayout*>(findLayoutElement(treeItem_ptr));
+			EasyGrade::QuestionLayout* question_ptr = dynamic_cast<EasyGrade::QuestionLayout*>(findLayoutElement(treeItem_ptr));
 			if(question_ptr != nullptr) {
 				focusedQuestion_ptr = question_ptr;
 				numQuestions++;
@@ -859,7 +861,7 @@ void SheetLayoutEditor::applyQuestionEditor() {
 		}
 		//Make sure to tell the question's parent that its question number has changed
 		if(focusedQuestion_ptr->getParent() != nullptr) {
-			GroupLayout* parent_ptr = dynamic_cast<GroupLayout*>(focusedQuestion_ptr->getParent());
+			EasyGrade::GroupLayout* parent_ptr = dynamic_cast<EasyGrade::GroupLayout*>(focusedQuestion_ptr->getParent());
 			if(parent_ptr != nullptr) {
 				parent_ptr->refreshQuestionNumbers();
 			} else {
@@ -883,10 +885,10 @@ void SheetLayoutEditor::updateGroupEditor() {
 
 	//Find the number of selected groups
 	size_t numGroups = 0;
-	GroupLayout* focusedGroup_ptr = nullptr;
+	EasyGrade::GroupLayout* focusedGroup_ptr = nullptr;
 	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
 		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::QUESTION_GROUP_LAYOUT)) {
-			GroupLayout* group_ptr = dynamic_cast<GroupLayout*>(findLayoutElement(treeItem_ptr));
+			EasyGrade::GroupLayout* group_ptr = dynamic_cast<EasyGrade::GroupLayout*>(findLayoutElement(treeItem_ptr));
 			if(group_ptr != nullptr) {
 				focusedGroup_ptr = group_ptr;
 				numGroups++;
@@ -904,7 +906,7 @@ void SheetLayoutEditor::applyGroupEditor() {
 	//Iterate overr all selected groups
 	for(auto treeItem_ptr : ui->layoutTree->selectedItems()) {
 		if(treeItem_ptr->type() == static_cast<int>(TreeItemType::QUESTION_GROUP_LAYOUT)) {
-			GroupLayout* group_ptr = dynamic_cast<GroupLayout*>(findLayoutElement(treeItem_ptr));
+			EasyGrade::GroupLayout* group_ptr = dynamic_cast<EasyGrade::GroupLayout*>(findLayoutElement(treeItem_ptr));
 			if(group_ptr != nullptr) {
 				//Update properties of this group layout to reflect changes in the group editor
 				group_ptr->setName(ui->groupNameInput->text().toStdString());
@@ -924,7 +926,7 @@ void SheetLayoutEditor::removeLayoutElements(QList<QTreeWidgetItem*>& items) {
 	int status = 0;
 
 	//Find all layout elements to be removed before removing any of them. This is done because findLayoutElement() produces undefined behavoir if the GUI is out of synch with the model, but refreshing the GUI between each delete operation is expensive
-	std::vector<SheetLayoutElement*> layoutElements;
+	std::vector<EasyGrade::SheetLayoutElement*> layoutElements;
 	for(const auto& item : items) {
 		if(item == nullptr) {
 			status = -1;
@@ -933,7 +935,7 @@ void SheetLayoutEditor::removeLayoutElements(QList<QTreeWidgetItem*>& items) {
 		}
 
 		if(status >= 0) {
-			SheetLayoutElement* layoutElement = findLayoutElement(item);
+			EasyGrade::SheetLayoutElement* layoutElement = findLayoutElement(item);
 			if(layoutElement == nullptr) {
 				status = -1;
 				tlOss << "Failed to find sheet layout element to delete.";
@@ -946,7 +948,7 @@ void SheetLayoutEditor::removeLayoutElements(QList<QTreeWidgetItem*>& items) {
 	for(const auto& layoutElement : layoutElements) {
 		if(status >= 0) {
 			//Remove the sheet layout element from its parent
-			SheetLayoutElement* parent = layoutElement->getParent();
+			EasyGrade::SheetLayoutElement* parent = layoutElement->getParent();
 			//If parent is null than the sheet layout element is either unowned or it is a side layout element. Right now removing side layout elements is not supported, so assume it is unowned
 			if(parent == nullptr) {
 				unownedLayoutElements.remove(layoutElement);
@@ -985,14 +987,14 @@ bool SheetLayoutEditor::isOwned(QTreeWidgetItem* item) {
 	return isOwned;
 }
 
-SheetLayoutElement* SheetLayoutEditor::findLayoutElement(QTreeWidgetItem* item) {
+EasyGrade::SheetLayoutElement* SheetLayoutEditor::findLayoutElement(QTreeWidgetItem* item) {
 	int status = 0;
 
 	if(item == nullptr) {
 		status = -1;
 	}
 
-	SheetLayoutElement* element = nullptr;
+	EasyGrade::SheetLayoutElement* element = nullptr;
 	if(status == 0) {
 		//Check if this is a top level item of the layout tree (indexOfTopLevelItem() returns -1 if it is not)
 		int index = ui->layoutTree->indexOfTopLevelItem(item);
@@ -1007,7 +1009,7 @@ SheetLayoutElement* SheetLayoutEditor::findLayoutElement(QTreeWidgetItem* item) 
 			//If this is not a top level item, request it from its parent
 			QTreeWidgetItem* parentItem = item->parent();
 			index = parentItem->indexOfChild(item);
-			SheetLayoutElement* parentElement = findLayoutElement(parentItem);
+			EasyGrade::SheetLayoutElement* parentElement = findLayoutElement(parentItem);
 			if(parentElement == nullptr) {
 				//If the parent element does not exist then this element is unowned and can be found in the unowned layout elements list
 				element = unownedLayoutElements.elementAt(index);

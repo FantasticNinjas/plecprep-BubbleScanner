@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
-<sheet title="Example Template">
+<sheet title="Green Scantron Sheet">
     <side bg-image="greensheet_front.png">
     </side>
-    <side bg-image="greensheet_back.png">
-    </side>
+    <side bg-image="greensheet_back.png" />
 </sheet>

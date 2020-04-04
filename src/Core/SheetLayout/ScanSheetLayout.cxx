@@ -11,10 +11,10 @@ namespace {
 	TextLogging tlog;
 }
 
-ScanSheetLayout::ScanSheetLayout() = default;
-ScanSheetLayout::~ScanSheetLayout() = default;
+EasyGrade::ScanSheetLayout::ScanSheetLayout() = default;
+EasyGrade::ScanSheetLayout::~ScanSheetLayout() = default;
 
-void ScanSheetLayout::writeXml(std::ostream& os) {
+void EasyGrade::ScanSheetLayout::writeXml(std::ostream& os) {
 	pugi::xml_document doc;
 
 	//Add sheet node
@@ -73,7 +73,7 @@ void ScanSheetLayout::writeXml(std::ostream& os) {
 	doc.save(os, "    ");
 }
 
-int ScanSheetLayout::readXml(std::istream& is) {
+int EasyGrade::ScanSheetLayout::readXml(std::istream& is) {
 	int status = 0;
 
 	//Reset layout (in case this instance is being reused)
@@ -261,12 +261,12 @@ int ScanSheetLayout::readXml(std::istream& is) {
 	return status;
 }
 
-void ScanSheetLayout::reset() {
+void EasyGrade::ScanSheetLayout::reset() {
 	title_ = "";
 	sheetSides_.clear();
 }
 
-SideLayout* ScanSheetLayout::sideLayout(int sideNumber) {
+EasyGrade::SideLayout* EasyGrade::ScanSheetLayout::sideLayout(int sideNumber) {
 	SideLayout* side = nullptr;
 	if(sideNumber < numSides()) {
 		side = &sheetSides_[sideNumber];
@@ -274,27 +274,27 @@ SideLayout* ScanSheetLayout::sideLayout(int sideNumber) {
 	return side;
 }
 
-void ScanSheetLayout::newSide() {
+void EasyGrade::ScanSheetLayout::newSide() {
 	sheetSides_.push_back(SideLayout(numSides()));
 }
 
-size_t ScanSheetLayout::numSides() {
+size_t EasyGrade::ScanSheetLayout::numSides() {
 	return sheetSides_.size();
 }
 
-const std::string & ScanSheetLayout::getTitle() {
+const std::string& EasyGrade::ScanSheetLayout::getTitle() {
 	return title_;
 }
 
-void ScanSheetLayout::setTitle(const std::string & title) {
+void EasyGrade::ScanSheetLayout::setTitle(const std::string & title) {
 	title_ = title;
 }
 
-ScanSheetLayout::iterator ScanSheetLayout::begin() {
+EasyGrade::ScanSheetLayout::iterator EasyGrade::ScanSheetLayout::begin() {
 	return ScanSheetLayout::iterator(*this, 0, -1, -1, -1);
 }
 
-ScanSheetLayout::iterator ScanSheetLayout::end() {
+EasyGrade::ScanSheetLayout::iterator EasyGrade::ScanSheetLayout::end() {
 	return ScanSheetLayout::iterator(*this, numSides(), -1, -1, -1);
 }
 
@@ -303,33 +303,33 @@ ScanSheetLayout::iterator ScanSheetLayout::end() {
 //     Definitions for ScanSheetLayout::iterator     //
 ///////////////////////////////////////////////////////
 
-ScanSheetLayout::iterator::iterator(ScanSheetLayout& scanSheet, int sideIndex, int groupIndex, int questionIndex, int bubbleIndex) :
+EasyGrade::ScanSheetLayout::iterator::iterator(ScanSheetLayout& scanSheet, int sideIndex, int groupIndex, int questionIndex, int bubbleIndex) :
 	scanSheet_(scanSheet), sideIndex_(sideIndex), groupIndex_(groupIndex), questionIndex_(questionIndex), bubbleIndex_(bubbleIndex) {
 }
 
-SheetLayoutElement& ScanSheetLayout::iterator::operator*() {
+EasyGrade::SheetLayoutElement& EasyGrade::ScanSheetLayout::iterator::operator*() {
 	return *target_;
 }
 
-const SheetLayoutElement& ScanSheetLayout::iterator::operator*() const {
+const EasyGrade::SheetLayoutElement& EasyGrade::ScanSheetLayout::iterator::operator*() const {
 	return *target_;
 }
 
-SheetLayoutElement* ScanSheetLayout::iterator::operator->() {
+EasyGrade::SheetLayoutElement* EasyGrade::ScanSheetLayout::iterator::operator->() {
 	return target_;
 }
 
-const SheetLayoutElement* ScanSheetLayout::iterator::operator->() const {
+const EasyGrade::SheetLayoutElement* EasyGrade::ScanSheetLayout::iterator::operator->() const {
 	return target_;
 }
 
-ScanSheetLayout::iterator ScanSheetLayout::iterator::operator++(int) {
+EasyGrade::ScanSheetLayout::iterator EasyGrade::ScanSheetLayout::iterator::operator++(int) {
 	ScanSheetLayout::iterator old = *this;
 	++*this;
 	return old;
 }
 
-ScanSheetLayout::iterator& ScanSheetLayout::iterator::operator++() {
+EasyGrade::ScanSheetLayout::iterator& EasyGrade::ScanSheetLayout::iterator::operator++() {
 	//A negative index indicates that this iterator points to the parent of that level. e.g. if bubbleIndex is negative but questionIndex is not, this iterator points to a questionIndex.
 
 	if(sideIndex_ >= scanSheet_.numSides()) {
@@ -397,7 +397,7 @@ ScanSheetLayout::iterator& ScanSheetLayout::iterator::operator++() {
 	return *this;
 }
 
-bool operator==(const ScanSheetLayout::iterator& lhs, const ScanSheetLayout::iterator& rhs) {
+bool EasyGrade::operator==(const ScanSheetLayout::iterator& lhs, const ScanSheetLayout::iterator& rhs) {
 	return &lhs.scanSheet_ == &rhs.scanSheet_ &&
 		lhs.sideIndex_ == rhs.sideIndex_ &&
 		lhs.groupIndex_ == rhs.groupIndex_ &&
@@ -405,6 +405,6 @@ bool operator==(const ScanSheetLayout::iterator& lhs, const ScanSheetLayout::ite
 		lhs.bubbleIndex_ == lhs.bubbleIndex_;
 }
 
-bool operator!=(const ScanSheetLayout::iterator& lhs, const ScanSheetLayout::iterator& rhs) {
+bool EasyGrade::operator!=(const ScanSheetLayout::iterator& lhs, const ScanSheetLayout::iterator& rhs) {
 	return !(lhs == rhs);
 }

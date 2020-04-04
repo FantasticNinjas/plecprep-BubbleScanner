@@ -14,7 +14,7 @@ private:
 
 	DetectionParams alignmentAlgorithm_;
 	DetectionParams detectionAlgorithm_;
-	ScanSheetLayout sheetLayout_;
+	EasyGrade::ScanSheetLayout sheetLayout_;
 
 };
 

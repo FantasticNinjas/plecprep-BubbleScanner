@@ -5,18 +5,18 @@
 #include "TextLogging.hxx"
 
 
-LayoutElementContainer::LayoutElementContainer() = default;
-LayoutElementContainer::~LayoutElementContainer() = default;
+EasyGrade::LayoutElementContainer::LayoutElementContainer() = default;
+EasyGrade::LayoutElementContainer::~LayoutElementContainer() = default;
 
-void LayoutElementContainer::add(const SheetLayoutElement& layoutElement) {
+void EasyGrade::LayoutElementContainer::add(const SheetLayoutElement& layoutElement) {
 	layoutElements_.push_back(layoutElement.clonePtr());
 } 
 
-void LayoutElementContainer::remove(size_t index) {
+void EasyGrade::LayoutElementContainer::remove(size_t index) {
 	layoutElements_.erase(layoutElements_.begin() + index);
 }
 
-void LayoutElementContainer::remove(const SheetLayoutElement* element) {
+void EasyGrade::LayoutElementContainer::remove(const SheetLayoutElement* element) {
 	//Iterate over all of the layout elements until the desired one is found and delete it
 	for(std::vector<std::unique_ptr<SheetLayoutElement> >::iterator& it = layoutElements_.begin(); it != layoutElements_.end(); it++) {
 		if(it->get() == element) {
@@ -27,7 +27,7 @@ void LayoutElementContainer::remove(const SheetLayoutElement* element) {
 	}
 }
 
-SheetLayoutElement* LayoutElementContainer::elementAt(size_t index) {
+EasyGrade::SheetLayoutElement* EasyGrade::LayoutElementContainer::elementAt(size_t index) {
 	SheetLayoutElement* element = nullptr;
 	if(index < size()) {
 		element = layoutElements_[index].get();
@@ -35,10 +35,10 @@ SheetLayoutElement* LayoutElementContainer::elementAt(size_t index) {
 	return element;
 }
 
-size_t LayoutElementContainer::size() const {
+size_t EasyGrade::LayoutElementContainer::size() const {
 	return layoutElements_.size();
 }
 
-bool LayoutElementContainer::empty() const {
+bool EasyGrade::LayoutElementContainer::empty() const {
 	return layoutElements_.empty();
 }
