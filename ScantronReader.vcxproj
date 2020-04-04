@@ -115,7 +115,7 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Image.cxx" />
+    <ClCompile Include="src\Core\ImageProcessing\Image.cxx" />
     <ClCompile Include="src\Core\Rectangle.cxx" />
     <ClCompile Include="src\Core\SheetLayout\BubbleLayout.cxx" />
     <ClCompile Include="src\Core\SheetLayout\GroupLayout.cxx" />
@@ -149,8 +149,8 @@
     <QtRcc Include="ScantronReader.qrc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Image.hxx" />
-    <ClInclude Include="ImageFilter.hxx" />
+    <ClInclude Include="src\Core\ImageProcessing\Image.hxx" />
+    <ClInclude Include="src\Core\ImageProcessing\ImageFilter.hxx" />
     <ClInclude Include="src\Core\Rectangle.hxx" />
     <ClInclude Include="src\Core\SheetLayout\BubbleLayout.hxx" />
     <ClInclude Include="src\Core\SheetLayout\GroupLayout.hxx" />
@@ -174,10 +174,6 @@
       <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_UITOOLS_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</Define>
     </QtMoc>
     <ClInclude Include="src\Core\TextLogging.hxx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="empty.png" />
-    <Image Include="scantronTest2.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

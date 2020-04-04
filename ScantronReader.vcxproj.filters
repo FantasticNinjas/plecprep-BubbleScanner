@@ -1,14 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
       <Extensions>qrc;*</Extensions>
@@ -28,78 +20,93 @@
       <Extensions>moc;h;cpp</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
-    <Filter Include="Source Files\rec">
-      <UniqueIdentifier>{04649cab-ffe4-4cce-8881-1844a355b061}</UniqueIdentifier>
+    <Filter Include="src">
+      <UniqueIdentifier>{34549aab-f43c-437d-9ebe-62a8bc780b9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core">
+      <UniqueIdentifier>{fb76705e-255b-47c1-9e91-d1f594fa517f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\GUI">
+      <UniqueIdentifier>{a6abf170-9201-4336-a48c-5e98595cc0bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ThirdParty">
+      <UniqueIdentifier>{c08a3676-16d6-4fb2-a16b-02581f9f907b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\SheetLayout">
+      <UniqueIdentifier>{e2bab977-72c2-4f56-b6ac-bae9213c315c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\ImageProcessing">
+      <UniqueIdentifier>{4b362ca3-6e65-41d2-8dd6-b6293175e69b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Core\SheetLayout\BubbleLayout.cxx">
+      <Filter>src\Core\SheetLayout</Filter>
+    </ClCompile>
     <ClCompile Include="src\Core\DetectionParams.cxx">
-      <Filter>Source Files</Filter>
+      <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\Exam.cxx">
-      <Filter>Source Files</Filter>
+      <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\ExamConfig.cxx">
-      <Filter>Source Files</Filter>
+      <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\GUI\FilenameOracle.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GUI\main.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ThirdParty\pugixml.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GUI\QtLogging.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GUI\ScantronReader.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GUI\SheetLayoutEditor.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\TextLogging.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\SheetScan.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\SheetLayout\BubbleLayout.cxx">
-      <Filter>Source Files</Filter>
+      <Filter>src\GUI</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\SheetLayout\GroupLayout.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\SheetLayout\LayoutElementContainer.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\SheetLayout\QuestionLayout.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\SheetLayout\ScanSheetLayout.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\SheetLayout\SheetLayoutElement.cxx">
-      <Filter>Source Files</Filter>
+      <Filter>src\Core\SheetLayout</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\SheetLayout\SideLayout.cxx">
-      <Filter>Source Files</Filter>
+      <Filter>src\Core\SheetLayout</Filter>
     </ClCompile>
-    <ClCompile Include="Image.cxx">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Core\SheetLayout\SheetLayoutElement.cxx">
+      <Filter>src\Core\SheetLayout</Filter>
     </ClCompile>
-    <ClCompile Include="Rectangle.cxx">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Core\SheetLayout\QuestionLayout.cxx">
+      <Filter>src\Core\SheetLayout</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\SheetLayout\LayoutElementContainer.cxx">
+      <Filter>src\Core\SheetLayout</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\ImageProcessing\Image.cxx">
+      <Filter>src\Core\ImageProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\SheetScan.cxx">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\TextLogging.cxx">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\SheetLayoutEditor.cxx">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\ScantronReader.cxx">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\QtLogging.cxx">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\main.cxx">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ThirdParty\pugixml.cpp">
+      <Filter>src\ThirdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Rectangle.cxx">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\SheetLayout\ScanSheetLayout.cxx">
+      <Filter>src\Core\SheetLayout</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="src\GUI\ScantronReader.hxx">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="src\GUI\SheetLayoutEditor.hxx">
-      <Filter>Header Files</Filter>
+      <Filter>src\GUI</Filter>
+    </QtMoc>
+    <QtMoc Include="src\GUI\ScantronReader.hxx">
+      <Filter>src\GUI</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
@@ -116,66 +123,62 @@
     </QtRcc>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Core\DetectionParams.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\Exam.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\ExamConfig.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GUI\FilenameOracle.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ThirdParty\pugiconfig.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ThirdParty\pugixml.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GUI\QtLogging.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\TextLogging.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\SheetScan.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Core\SheetLayout\BubbleLayout.hxx">
-      <Filter>Header Files</Filter>
+      <Filter>src\Core\SheetLayout</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\SheetLayout\GroupLayout.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\SheetLayout\LayoutElementContainer.hxx">
-      <Filter>Header Files</Filter>
+      <Filter>src\Core\SheetLayout</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\SheetLayout\QuestionLayout.hxx">
-      <Filter>Header Files</Filter>
+      <Filter>src\Core\SheetLayout</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\SheetLayout\ScanSheetLayout.hxx">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\SheetLayout\SheetLayoutElement.hxx">
-      <Filter>Header Files</Filter>
+      <Filter>src\Core\SheetLayout</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\SheetLayout\SideLayout.hxx">
-      <Filter>Header Files</Filter>
+      <Filter>src\Core\SheetLayout</Filter>
     </ClInclude>
-    <ClInclude Include="Image.hxx">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Core\TextLogging.hxx">
+      <Filter>src\Core</Filter>
     </ClInclude>
-    <ClInclude Include="ImageFilter.hxx">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Core\ImageProcessing\Image.hxx">
+      <Filter>src\Core\ImageProcessing</Filter>
     </ClInclude>
-    <ClInclude Include="Rectangle.hxx">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Core\ImageProcessing\ImageFilter.hxx">
+      <Filter>src\Core\ImageProcessing</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="scantronTest2.png" />
-    <Image Include="empty.png" />
+    <ClInclude Include="src\Core\SheetLayout\LayoutElementContainer.hxx">
+      <Filter>src\Core\SheetLayout</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\DetectionParams.hxx">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Exam.hxx">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\ExamConfig.hxx">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ThirdParty\pugiconfig.hpp">
+      <Filter>src\ThirdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ThirdParty\pugixml.hpp">
+      <Filter>src\ThirdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\QtLogging.hxx">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Rectangle.hxx">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\SheetScan.hxx">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\SheetLayout\SheetLayoutElement.hxx">
+      <Filter>src\Core\SheetLayout</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\FilenameOracle.hxx">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
